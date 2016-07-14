@@ -15,10 +15,11 @@ public class MulticastReceiver {
     public static void main(String[] args) throws IOException {
         InetAddress inetRemoteAddr = InetAddress.getByName("224.0.0.5");
 
-        DatagramPacket recvPack = new DatagramPacket(new byte[1024], 1024);
+        DatagramPacket receivePacket = new DatagramPacket(new byte[1024], 1024);
 
         MulticastSocket server = new MulticastSocket(8888);
 
+        server.setInterface(InetAddress.getLocalHost());
         /*
          * 如果是发送数据报包,可以不加入多播组; 如果是接收数据报包,必须加入多播组; 这里是接收数据报包,所以必须加入多播组;
          */
@@ -29,12 +30,11 @@ public class MulticastReceiver {
         System.out.println("---------------------------------");
 
         while (true) {
-            server.receive(recvPack);
+            server.receive(receivePacket);
 
-            byte[] recvByte = Arrays.copyOfRange(recvPack.getData(), 0,
-                    recvPack.getLength());
+            byte[] receiveByte = Arrays.copyOfRange(receivePacket.getData(), 0, receivePacket.getLength());
 
-            System.out.println("Server receive msg:" + new String(recvByte));
+            System.out.println("Server receive msg:" + new String(receiveByte));
         }
 
     }
