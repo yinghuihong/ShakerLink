@@ -1,4 +1,4 @@
-package com.shaker.link.core.udp;
+package com.shaker.link.core.udp.test;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -6,14 +6,20 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 
 /**
+ * multicast sender
  * Created by yinghuihong on 16/7/14.
  */
 public class MulticastSender {
-    public static void main(String[] args) throws IOException {
-        int port = 8888;
-        byte[] msg = "Connection successfully!!!".getBytes();
 
-        InetAddress inetRemoteAddr = InetAddress.getByName("224.0.0.5");
+    private static final String HOST = "224.0.0.5";
+
+    private static final int PORT = 8888;
+
+    public static void main(String[] args) throws IOException {
+        // construct packet for sent
+        byte[] msg = "Connection successfully!!!".getBytes();
+        InetAddress inetRemoteAddr = InetAddress.getByName(HOST);
+        DatagramPacket sendPack = new DatagramPacket(msg, msg.length, inetRemoteAddr, PORT);
 
         /*
          * Java UDP组播应用程序主要通过MulticastSocket实例进行通信,它是DatagramSocket的是一个子类,
@@ -25,15 +31,8 @@ public class MulticastSender {
          * 我们这里使用MulticastSocket,是因为它具有DatagramSocket没有的能力
          */
         MulticastSocket client = new MulticastSocket();
-
-        DatagramPacket sendPack = new DatagramPacket(msg, msg.length,
-                inetRemoteAddr, port);
-
         client.send(sendPack);
-
-        System.out.println("Client send msg complete");
-
         client.close();
-
+        System.out.println("Client send msg complete");
     }
 }

@@ -1,4 +1,4 @@
-package com.shaker.link.core.udp;
+package com.shaker.link.core.udp.test;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -7,13 +7,16 @@ import java.util.Arrays;
 
 
 /**
+ * broadcast receiver
  * Created by yinghuihong on 16/7/14.
  */
 public class BroadcastReceiver {
-    public static void main(String[] args) throws IOException {
 
+    private static final int PORT = 8081;
+
+    public static void main(String[] args) throws IOException {
         DatagramPacket receive = new DatagramPacket(new byte[1024], 1024);
-        DatagramSocket server = new DatagramSocket(8881);
+        DatagramSocket server = new DatagramSocket(PORT);
 
         System.out.println("---------------------------------");
         System.out.println("Server current start......");
@@ -21,12 +24,8 @@ public class BroadcastReceiver {
 
         while (true) {
             server.receive(receive);
-
-            byte[] recvByte = Arrays.copyOfRange(receive.getData(), 0,
-                    receive.getLength());
-
-            System.out.println("Server receive msg:" + new String(recvByte));
+            byte[] receiveByte = Arrays.copyOfRange(receive.getData(), 0, receive.getLength());
+            System.out.println("Server receive msg:" + new String(receiveByte));
         }
-
     }
 }
