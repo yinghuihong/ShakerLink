@@ -12,7 +12,7 @@ import java.util.Arrays;
  */
 public class BroadcastReceiver {
 
-    private static final int PORT = 8081;
+    private static final int PORT = 1900;
 
     public static void main(String[] args) throws IOException {
         DatagramPacket receive = new DatagramPacket(new byte[1024], 1024);

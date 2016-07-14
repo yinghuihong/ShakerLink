@@ -13,7 +13,7 @@ public class MulticastSender {
 
     private static final String HOST = "224.0.0.5";
 
-    private static final int PORT = 8888;
+    private static final int PORT = 1900;
 
     public static void main(String[] args) throws IOException {
         // construct packet for sent

@@ -15,10 +15,11 @@ public class MulticastReceiver {
 
     private static final String HOST = "224.0.0.5";
 
-    private static final int PORT = 8888;
+    private static final int PORT = 1900;
 
     public static void main(String[] args) throws IOException {
         InetAddress inetRemoteAddr = InetAddress.getByName(HOST);
+        // 会占用端口,但却可以同时开启多个端口相同的组播
         MulticastSocket server = new MulticastSocket(PORT);
         // it should be set interface or will be throw can't assign address exception
         server.setInterface(InetAddress.getLocalHost());
