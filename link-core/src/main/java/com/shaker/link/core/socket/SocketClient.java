@@ -1,9 +1,8 @@
 package com.shaker.link.core.socket;
 
-import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
@@ -14,17 +13,17 @@ public class SocketClient extends Thread {
 
     private Socket socket;
 
-    private BufferedReader reader = null;
+    private DataInputStream reader = null;
 
-    private PrintWriter writer = null;
+    private DataOutputStream writer = null;
 
     private IDataReceiveListener listener;
 
     public SocketClient(String address, int port, IDataReceiveListener listener) {
         try {
             this.socket = new Socket(address, port);
-            this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.writer = new PrintWriter(socket.getOutputStream());
+            this.reader = new DataInputStream(socket.getInputStream());
+            this.writer = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -34,8 +33,8 @@ public class SocketClient extends Thread {
     public SocketClient(Socket socket, IDataReceiveListener listener) {
         this.socket = socket;
         try {
-            this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.writer = new PrintWriter(socket.getOutputStream());
+            this.reader = new DataInputStream(socket.getInputStream());
+            this.writer = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -47,12 +46,9 @@ public class SocketClient extends Thread {
         super.run();
         while (!interrupted()) {
             try {
-                String data = reader.readLine(); // block code
+                String data = reader.readUTF(); // block code
                 if (listener != null) {
                     listener.dataReceive(this, data);
-                }
-                if (data == null) {
-                    close();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -64,9 +60,13 @@ public class SocketClient extends Thread {
         }
     }
 
-    public void send(Object object) {
-        writer.println(object);
-        writer.flush();
+    public void send(String data) {
+        try {
+            writer.writeUTF(data);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void close() {

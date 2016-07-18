@@ -18,7 +18,7 @@ public class SocketClientTest {
                 new SocketClient.IDataReceiveListener() {
                     @Override
                     public void dataReceive(SocketClient socketClient, String data) {
-                        System.out.println(data);
+                        System.out.println("[Data Receive]" + data);
 //                        socketClient.send(data);
                     }
                 });

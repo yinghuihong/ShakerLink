@@ -30,17 +30,18 @@ public class SocketServer extends Thread {
         while (!interrupted()) {
             try {
                 System.out.println("accept()");
-                Socket socket = server.accept();
-                System.out.println(socket.getInetAddress().getHostName());
+                final Socket socket = server.accept();
+                System.out.println(socket.getLocalAddress().toString() + ":" + socket.getLocalPort());
                 SocketClient socketWrapper = new SocketClient(socket, new SocketClient.IDataReceiveListener() {
                     @Override
                     public void dataReceive(SocketClient socketWrapper, String data) {
                         if (data == null) {
+                            print();
                             map.remove(socketWrapper.hashCode());
                         } else {
                             //TODO handle actions
-                            System.out.println("Receive from client " + socketWrapper.hashCode() + " " + data);
-                            socketWrapper.send("[resp]" + data);
+                            System.out.println("[Data Receive]" + data + " [Client]" + socket.hashCode());
+                            socketWrapper.send("[Resp]" + data);
                         }
                     }
                 });
@@ -58,7 +59,7 @@ public class SocketServer extends Thread {
         }
     }
 
-    public void send(Object data) {
+    public void send(String data) {
         for (Map.Entry<Integer, SocketClient> entry : map.entrySet()) {
             entry.getValue().send(data);
         }
