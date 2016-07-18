@@ -3,6 +3,7 @@ package com.shaker.link.core.socket;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 
 /**
@@ -19,7 +20,7 @@ public class SocketClient extends Thread {
 
     private IDataReceiveListener listener;
 
-    public SocketClient(String address, int port, IDataReceiveListener listener) {
+    public SocketClient(InetAddress address, int port, IDataReceiveListener listener) {
         try {
             this.socket = new Socket(address, port);
             this.reader = new DataInputStream(socket.getInputStream());

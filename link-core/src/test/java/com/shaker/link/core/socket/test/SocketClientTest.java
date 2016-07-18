@@ -5,6 +5,7 @@ import com.shaker.link.core.socket.SocketClient;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 
 /**
  * Created by yinghuihong on 16/7/18.
@@ -14,12 +15,13 @@ public class SocketClientTest {
     private static final int PORT = 9999;
 
     public static void main(String... args) throws IOException {
-        SocketClient client = new SocketClient("127.0.0.1", PORT,
+        InetAddress address = InetAddress.getLocalHost();
+        System.out.println(address);
+        SocketClient client = new SocketClient(InetAddress.getLocalHost(), PORT,
                 new SocketClient.IDataReceiveListener() {
                     @Override
                     public void dataReceive(SocketClient socketClient, String data) {
                         System.out.println("[Data Receive]" + data);
-//                        socketClient.send(data);
                     }
                 });
         client.start();// start data receive listener
