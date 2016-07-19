@@ -6,4 +6,5 @@ package com.shaker.link.core.udp;
 public interface UDP {
     String MULTICAST_HOST = "224.0.0.5";
     int MULTICAST_PORT = 1900;
+    int UNICAST_PORT = 8888;
 }

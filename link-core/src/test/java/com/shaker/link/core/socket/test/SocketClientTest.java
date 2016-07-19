@@ -1,7 +1,7 @@
 package com.shaker.link.core.socket.test;
 
 import com.shaker.link.core.socket.SocketClient;
-import com.shaker.link.core.util.StreamUtil;
+import com.shaker.link.core.util.StreamConvertUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -37,7 +37,7 @@ public class SocketClientTest {
 
     private static void sendMessageByFile() throws IOException {
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("package.json");
-        client.send(StreamUtil.stream2String(inputStream));
+        client.send(StreamConvertUtil.stream2String(inputStream));
     }
 
     private static void sendMessageByTerminal() throws IOException {
