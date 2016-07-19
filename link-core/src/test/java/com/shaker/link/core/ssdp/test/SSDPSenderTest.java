@@ -1,7 +1,7 @@
 package com.shaker.link.core.ssdp.test;
 
 import com.shaker.link.core.ssdp.SSDPSender;
-import com.shaker.link.core.util.StreamByteUtil;
+import com.shaker.link.core.util.StreamUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +15,6 @@ public class SSDPSenderTest {
     public static void main(String... args) throws IOException {
         SSDPSender sender = new SSDPSender();
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("package.json");
-        sender.send(StreamByteUtil.stream2Byte(inputStream));
+        sender.send(StreamUtil.stream2Byte(inputStream));
     }
 }

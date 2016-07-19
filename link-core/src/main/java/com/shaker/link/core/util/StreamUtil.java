@@ -8,7 +8,7 @@ import java.io.InputStream;
 /**
  * Created by yinghuihong on 16/7/15.
  */
-public class StreamByteUtil {
+public class StreamUtil {
 
     public static final InputStream byte2Stream(byte[] buf) {
         return new ByteArrayInputStream(buf);
@@ -25,4 +25,12 @@ public class StreamByteUtil {
         return in2b;
     }
 
+    public static String stream2String(InputStream in) throws IOException {
+        StringBuffer out = new StringBuffer();
+        byte[] b = new byte[4096];
+        for (int n; (n = in.read(b)) != -1; ) {
+            out.append(new String(b, 0, n));
+        }
+        return out.toString();
+    }
 }
