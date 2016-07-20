@@ -13,8 +13,6 @@ import java.io.IOException;
  */
 public class ControlPoint implements UnicastReceiver.UnicastReceiverListener {
 
-    private static final int PORT_UNICAST = 8888;
-
     private MulticastSender multicastSender;
 
     private UnicastReceiver unicastReceiver;
@@ -23,7 +21,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener {
 
     public ControlPoint() {
         multicastSender = new MulticastSender();
-        unicastReceiver = new UnicastReceiver(PORT_UNICAST, this);
+        unicastReceiver = new UnicastReceiver(this);
     }
 
     public void init() {
@@ -37,7 +35,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener {
         // use object
         MulticastSendPacket sendPacket = new MulticastSendPacket();
         sendPacket.action = UPNP.ACTION_SEARCH;
-        sendPacket.unicastPort = PORT_UNICAST;
+        sendPacket.unicastPort = unicastReceiver.getPort();
         System.out.println("Send multicast message :\n" + gson.toJson(sendPacket) + "\n");
         multicastSender.send(gson.toJson(sendPacket).getBytes());
     }

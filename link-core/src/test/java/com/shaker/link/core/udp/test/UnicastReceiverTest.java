@@ -9,13 +9,12 @@ import com.shaker.link.core.udp.UnicastReceiver;
 public class UnicastReceiverTest {
 
     public static void main(String... args) {
-        UnicastReceiver receiver = new UnicastReceiver(8888,
-                new UnicastReceiver.UnicastReceiverListener() {
-                    @Override
-                    public void unicastReceive(String data) {
-                        System.out.println(data);
-                    }
-                });
+        UnicastReceiver receiver = new UnicastReceiver(new UnicastReceiver.UnicastReceiverListener() {
+            @Override
+            public void unicastReceive(String data) {
+                System.out.println(data);
+            }
+        });
         receiver.start();
     }
 }

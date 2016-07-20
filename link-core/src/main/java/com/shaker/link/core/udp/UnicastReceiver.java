@@ -15,16 +15,28 @@ public class UnicastReceiver extends Thread {
 
     private DatagramSocket server;
 
+    private int port = 8888;
+
     private UnicastReceiverListener listener;
 
-    public UnicastReceiver(int port, UnicastReceiverListener listener) {
-        try {
-            // server address use local host
-            this.server = new DatagramSocket(port);
-            this.listener = listener;
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
+    public UnicastReceiver(UnicastReceiverListener listener) {
+        boolean flag;
+        do {
+            try {
+                // server address use local host
+                this.server = new DatagramSocket(port);
+                flag = false;
+            } catch (SocketException e) {
+                flag = true;
+                port++;
+                System.out.println(e.getMessage() + ", change use port " + port);
+            }
+        } while (flag);
+        this.listener = listener;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     @Override
