@@ -1,23 +1,25 @@
 package com.shaker.link.core.upnp;
 
 import com.google.gson.Gson;
+import com.shaker.link.core.socket.SocketServer;
 import com.shaker.link.core.udp.MulticastReceiver;
 import com.shaker.link.core.udp.MulticastSender;
 import com.shaker.link.core.udp.UnicastSender;
 import com.shaker.link.core.upnp.bean.DeviceModel;
 import com.shaker.link.core.upnp.bean.MulticastPacket;
+import com.shaker.link.core.upnp.bean.UnicastPacket;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.util.Arrays;
-import java.util.UUID;
 
 /**
  * device role
  * Created by yinghuihong on 16/7/19.
  */
 public class Device implements MulticastReceiver.MulticastReceiverListener {
+
+    private SocketServer socketServer;
 
     private MulticastReceiver multicastReceiver;
 
@@ -28,12 +30,14 @@ public class Device implements MulticastReceiver.MulticastReceiverListener {
     private Gson gson = new Gson();
 
     public Device() {
+        socketServer = new SocketServer();
         multicastReceiver = new MulticastReceiver(this);
         unicastSender = new UnicastSender();
         notifyAliveThread = new NotifyAliveThread();
     }
 
     public void init() {
+        socketServer.start();
         multicastReceiver.start();
         notifyAliveThread.start();
     }
@@ -46,7 +50,18 @@ public class Device implements MulticastReceiver.MulticastReceiverListener {
             case UPNP.ACTION_SEARCH:
                 System.out.println("Receive multicast msg from " + receivePacket.getAddress().getHostAddress()
                         + ":" + receivePacket.getPort() + "\n" + new String(receiveBytes));
-                sendUnicast(receivePacket.getAddress(), multicastPacket.unicastPort, "this message is search response");
+                UnicastPacket unicastPacket = new UnicastPacket();
+                unicastPacket.action = UPNP.ACTION_SEARCH_RESP;
+                unicastPacket.socketPort = socketServer.getPort();
+                unicastPacket.deviceModel = new DeviceModel();
+                unicastPacket.deviceModel.uuid = UPNP.uuid;
+                unicastPacket.deviceModel.name = "JSHDC_" + UPNP.uuid;
+                unicastPacket.deviceModel.model = "CM101";
+                try {
+                    unicastSender.send(receivePacket.getAddress(), multicastPacket.unicastPort, unicastPacket);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             default:
                 // ignore
@@ -54,16 +69,8 @@ public class Device implements MulticastReceiver.MulticastReceiverListener {
         }
     }
 
-    public void sendUnicast(InetAddress address, int port, String data) {
-        try {
-            System.out.println("Send unicast message to " + address.getHostAddress() + ":" + port + "\n" + data + "\n");
-            unicastSender.send(address, port, data);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void close() {
+        socketServer.close();
         if (!multicastReceiver.isInterrupted()) {
             multicastReceiver.interrupt();
         }
@@ -77,11 +84,8 @@ public class Device implements MulticastReceiver.MulticastReceiverListener {
 
         private MulticastSender sender;
 
-        private String uuid;
-
         public NotifyAliveThread() {
             sender = new MulticastSender();
-            uuid = UUID.randomUUID().toString();
         }
 
         @Override
@@ -92,9 +96,10 @@ public class Device implements MulticastReceiver.MulticastReceiverListener {
                     MulticastPacket multicastPacket = new MulticastPacket();
                     multicastPacket.action = UPNP.ACTION_NOTIFY;
                     multicastPacket.category = UPNP.NOTIFY_ALIVE;
+                    multicastPacket.socketPort = socketServer.getPort();
                     multicastPacket.deviceModel = new DeviceModel();
-                    multicastPacket.deviceModel.uuid = uuid;
-                    multicastPacket.deviceModel.name = "JSHDC_" + uuid;
+                    multicastPacket.deviceModel.uuid = UPNP.uuid;
+                    multicastPacket.deviceModel.name = "JSHDC_" + UPNP.uuid;
                     multicastPacket.deviceModel.model = "CM101";
                     sender.send(multicastPacket);
                 } catch (IOException e) {

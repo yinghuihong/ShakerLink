@@ -12,12 +12,10 @@ import java.io.InputStreamReader;
  */
 public class SocketServerTest {
 
-    private static final int PORT = 9999;
-
     private static SocketServer server;
 
     public static void main(String... args) throws IOException {
-        server = new SocketServer(PORT);
+        server = new SocketServer();
         server.start();
 
         sendMessageByTerminal();

@@ -12,10 +12,18 @@ import java.net.InetAddress;
 public class UnicastSenderTest {
 
     public static void main(String... args) throws IOException {
+        Person person = new Person();
+        person.name = "shaker";
+        person.age = "1";
         UnicastSender sender = new UnicastSender();
         // obtain server address
         InetAddress address = InetAddress.getLocalHost();
-        sender.send(address, 8888, "some data");
+        sender.send(address, 8888, person);
         sender.close();
+    }
+
+    private static class Person {
+        String name;
+        String age;
     }
 }

@@ -32,9 +32,11 @@ public class MulticastSender {
 
     private void send(byte[] bytes) throws IOException {
         // construct packet for sent
-        InetAddress inetRemoteAddr = InetAddress.getByName(UDP.MULTICAST_HOST);
-        DatagramPacket sendPack = new DatagramPacket(bytes, bytes.length, inetRemoteAddr, UDP.MULTICAST_PORT);
-        client.send(sendPack);
+        InetAddress address = InetAddress.getByName(UDP.MULTICAST_HOST);
+        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, UDP.MULTICAST_PORT);
+
+        // send packet
+        client.send(packet);
     }
 
     public void close() {

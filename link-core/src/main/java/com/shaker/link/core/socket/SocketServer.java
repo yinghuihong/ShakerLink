@@ -14,19 +14,34 @@ public class SocketServer extends Thread {
 
     private ServerSocket server;
 
+    private int port = 9999;
+
     private Map<Integer, SocketClient> map = new HashMap<>();
 
-    public SocketServer(int port) {
-        try {
-            this.server = new ServerSocket(port);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public SocketServer() {
+        boolean flag;
+        do {
+            try {
+                this.server = new ServerSocket(port);
+                flag = false;
+            } catch (IOException e) {
+                flag = true;
+                port++;
+                System.out.println(e.getMessage() + ", change use port " + port);
+            }
+        } while (flag);
+    }
+
+    public int getPort() {
+        return port;
     }
 
     @Override
     public void run() {
         super.run();
+        System.out.println("---------------------------------");
+        System.out.println("Socket server current start......");
+        System.out.println("---------------------------------");
         while (!interrupted()) {
             try {
                 System.out.println("accept()");

@@ -1,13 +1,11 @@
 package com.shaker.link.core.upnp.bean;
 
 /**
- * Created by yinghuihong on 16/7/19.
+ * Created by yinghuihong on 16/7/20.
  */
-public class MulticastPacket {
+public class UnicastPacket {
 
     public String action;
-    public String category;
-    public int unicastPort;
     public int socketPort;
     public DeviceModel deviceModel;
 

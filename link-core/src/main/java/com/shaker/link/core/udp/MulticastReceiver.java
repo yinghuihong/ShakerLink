@@ -34,19 +34,19 @@ public class MulticastReceiver extends Thread {
 
     @Override
     public void run() {
-        try {
-            System.out.println("--------------------------------------");
-            System.out.println("Multicast receiver current start......");
-            System.out.println("--------------------------------------");
-            while (!interrupted()) {
+        System.out.println("--------------------------------------");
+        System.out.println("Multicast receiver current start......");
+        System.out.println("--------------------------------------");
+        while (!interrupted()) {
+            try {
                 DatagramPacket receivePacket = new DatagramPacket(new byte[1024], 1024);
                 server.receive(receivePacket);
                 if (listener != null) {
                     listener.multicastReceive(receivePacket);
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
