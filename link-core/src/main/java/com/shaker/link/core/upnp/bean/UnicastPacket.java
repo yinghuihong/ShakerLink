@@ -6,7 +6,6 @@ package com.shaker.link.core.upnp.bean;
 public class UnicastPacket {
 
     public String action;
-    public int socketPort;
     public DeviceModel deviceModel;
 
 }

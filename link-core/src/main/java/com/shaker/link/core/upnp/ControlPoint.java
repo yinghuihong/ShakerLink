@@ -1,6 +1,7 @@
 package com.shaker.link.core.upnp;
 
 import com.google.gson.Gson;
+import com.shaker.link.core.socket.SocketClient;
 import com.shaker.link.core.udp.MulticastReceiver;
 import com.shaker.link.core.udp.MulticastSender;
 import com.shaker.link.core.udp.UnicastReceiver;
@@ -9,6 +10,8 @@ import com.shaker.link.core.upnp.bean.MulticastPacket;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,13 +20,17 @@ import java.util.Map;
  * control point role
  * Created by yinghuihong on 16/7/19.
  */
-public class ControlPoint implements UnicastReceiver.UnicastReceiverListener, MulticastReceiver.MulticastReceiverListener {
+public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
+        MulticastReceiver.MulticastReceiverListener,
+        SocketClient.SocketReceiverListener {
 
     private MulticastSender multicastSender;
 
     private UnicastReceiver unicastReceiver;
 
     private MulticastReceiver multicastReceiver;
+
+    private SocketClient socketClient;
 
     private Gson gson = new Gson();
 
@@ -61,6 +68,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener, Mu
         if (!unicastReceiver.isInterrupted()) {
             unicastReceiver.interrupt();
         }
+        socketClient.close();
     }
 
     @Override
@@ -93,5 +101,31 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener, Mu
         for (Map.Entry entry : map.entrySet()) {
             System.out.println("[DEVICE]" + entry.getKey() + ", " + entry.getValue().toString());
         }
+    }
+
+    public Map<String, DeviceModel> getDeviceModels() {
+        return map;
+    }
+
+    public void connect(DeviceModel model) {
+        try {
+            socketClient = new SocketClient(InetAddress.getByName(model.host), model.socketPort, this);
+            socketClient.start();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void send(String data) {
+        try {
+            socketClient.send(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public synchronized void socketReceive(SocketClient socket, String data) {
+        System.out.println("socket receive " + data);
     }
 }

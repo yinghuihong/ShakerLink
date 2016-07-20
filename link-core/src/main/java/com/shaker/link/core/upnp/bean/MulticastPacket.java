@@ -8,7 +8,6 @@ public class MulticastPacket {
     public String action;
     public String category;
     public int unicastPort;
-    public int socketPort;
     public DeviceModel deviceModel;
 
 }

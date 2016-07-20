@@ -18,7 +18,9 @@ public class SocketServer extends Thread {
 
     private Map<Integer, SocketClient> map = new HashMap<>();
 
-    public SocketServer() {
+    private SocketClient.SocketReceiverListener listener;
+
+    public SocketServer(SocketClient.SocketReceiverListener listener) {
         boolean flag;
         do {
             try {
@@ -30,6 +32,7 @@ public class SocketServer extends Thread {
                 System.out.println(e.getMessage() + ", change use port " + port);
             }
         } while (flag);
+        this.listener = listener;
     }
 
     public int getPort() {
@@ -47,16 +50,16 @@ public class SocketServer extends Thread {
                 System.out.println("accept()");
                 final Socket socket = server.accept();
                 System.out.println(socket.getLocalAddress().toString() + ":" + socket.getLocalPort());
-                SocketClient socketWrapper = new SocketClient(socket, new SocketClient.IDataReceiveListener() {
+                SocketClient socketWrapper = new SocketClient(socket, new SocketClient.SocketReceiverListener() {
                     @Override
-                    public void dataReceive(SocketClient socketWrapper, String data) {
+                    public void socketReceive(SocketClient socketWrapper, String data) {
                         if (data == null) {
                             print();
                             map.remove(socketWrapper.hashCode());
                         } else {
-                            //TODO handle actions
-                            System.out.println("[Data Receive]" + data + " [Client]" + socket.hashCode());
-                            socketWrapper.send("[Resp]" + data);
+                            if (listener != null) {
+                                listener.socketReceive(socketWrapper, data);
+                            }
                         }
                     }
                 });
@@ -74,7 +77,7 @@ public class SocketServer extends Thread {
         }
     }
 
-    public void send(String data) {
+    public void send(String data) throws IOException {
         for (Map.Entry<Integer, SocketClient> entry : map.entrySet()) {
             entry.getValue().send(data);
         }

@@ -18,9 +18,9 @@ public class SocketClient extends Thread {
 
     private DataOutputStream writer = null;
 
-    private IDataReceiveListener listener;
+    private SocketReceiverListener listener;
 
-    public SocketClient(InetAddress address, int port, IDataReceiveListener listener) {
+    public SocketClient(InetAddress address, int port, SocketReceiverListener listener) {
         try {
             this.socket = new Socket(address, port);
             this.reader = new DataInputStream(socket.getInputStream());
@@ -31,7 +31,7 @@ public class SocketClient extends Thread {
         this.listener = listener;
     }
 
-    public SocketClient(Socket socket, IDataReceiveListener listener) {
+    public SocketClient(Socket socket, SocketReceiverListener listener) {
         this.socket = socket;
         try {
             this.reader = new DataInputStream(socket.getInputStream());
@@ -49,25 +49,21 @@ public class SocketClient extends Thread {
             try {
                 String data = reader.readUTF(); // block code
                 if (listener != null) {
-                    listener.dataReceive(this, data);
+                    listener.socketReceive(this, data);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 if (listener != null) {
-                    listener.dataReceive(this, null);
+                    listener.socketReceive(this, null);
                 }
                 close();
             }
         }
     }
 
-    public void send(String data) {
-        try {
-            writer.writeUTF(data);
-            writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void send(String data) throws IOException {
+        writer.writeUTF(data);
+        writer.flush();
     }
 
     public void close() {
@@ -88,8 +84,8 @@ public class SocketClient extends Thread {
         }
     }
 
-    public interface IDataReceiveListener {
-        void dataReceive(SocketClient socket, String data);
+    public interface SocketReceiverListener {
+        void socketReceive(SocketClient socket, String data);
     }
 
 }

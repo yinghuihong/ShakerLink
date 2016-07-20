@@ -23,9 +23,9 @@ public class SocketClientTest {
         InetAddress address = InetAddress.getLocalHost();
         System.out.println(address);
         client = new SocketClient(InetAddress.getLocalHost(), PORT,
-                new SocketClient.IDataReceiveListener() {
+                new SocketClient.SocketReceiverListener() {
                     @Override
-                    public void dataReceive(SocketClient socketClient, String data) {
+                    public void socketReceive(SocketClient socketClient, String data) {
                         System.out.println("[Data Receive]" + data);
                     }
                 });
