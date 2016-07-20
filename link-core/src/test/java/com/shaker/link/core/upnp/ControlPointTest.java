@@ -9,7 +9,12 @@ import java.io.IOException;
 public class ControlPointTest {
 
     public static void main(String... args) throws IOException, InterruptedException {
-        ControlPoint cp = new ControlPoint();
+        ControlPoint cp = new ControlPoint(new ControlPoint.DeviceListChangedListener() {
+            @Override
+            public void deviceListChanged(ControlPoint controlPoint) {
+                System.out.println(controlPoint.getDeviceModels());
+            }
+        });
         cp.init();
         cp.search();
 

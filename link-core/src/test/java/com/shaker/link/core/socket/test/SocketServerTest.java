@@ -1,5 +1,6 @@
 package com.shaker.link.core.socket.test;
 
+import com.shaker.link.core.socket.SocketClient;
 import com.shaker.link.core.socket.SocketServer;
 
 import java.io.BufferedReader;
@@ -15,7 +16,12 @@ public class SocketServerTest {
     private static SocketServer server;
 
     public static void main(String... args) throws IOException {
-        server = new SocketServer();
+        server = new SocketServer(new SocketClient.SocketReceiverListener() {
+            @Override
+            public void socketReceive(SocketClient socket, String data) {
+                System.out.println("[Socket receive]" + data);
+            }
+        });
         server.start();
 
         sendMessageByTerminal();

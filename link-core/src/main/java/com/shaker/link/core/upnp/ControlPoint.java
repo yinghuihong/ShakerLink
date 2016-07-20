@@ -36,10 +36,13 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     private Map<String, DeviceModel> map = new HashMap<>();
 
-    public ControlPoint() {
+    private DeviceListChangedListener deviceListChangedListener;
+
+    public ControlPoint(DeviceListChangedListener listener) {
         multicastSender = new MulticastSender();
         unicastReceiver = new UnicastReceiver(this);
         multicastReceiver = new MulticastReceiver(this);
+        deviceListChangedListener = listener;
     }
 
     public void init() {
@@ -82,9 +85,15 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
                 switch (multicastPacket.category) {
                     case UPNP.NOTIFY_ALIVE:
                         map.put(multicastPacket.deviceModel.uuid, multicastPacket.deviceModel);
+                        if (deviceListChangedListener != null) {
+                            deviceListChangedListener.deviceListChanged(this);
+                        }
                         break;
                     case UPNP.NOTIFY_BYEBYE:
                         map.remove(multicastPacket.deviceModel.uuid);
+                        if (deviceListChangedListener != null) {
+                            deviceListChangedListener.deviceListChanged(this);
+                        }
                         break;
                     default:
                         // ignore
@@ -127,5 +136,9 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
     @Override
     public synchronized void socketReceive(SocketClient socket, String data) {
         System.out.println("socket receive " + data);
+    }
+
+    public interface DeviceListChangedListener {
+        void deviceListChanged(ControlPoint controlPoint);
     }
 }
