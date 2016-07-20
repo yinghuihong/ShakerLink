@@ -42,6 +42,9 @@ public class UnicastReceiver extends Thread {
     @Override
     public void run() {
         super.run();
+        System.out.println("------------------------------------");
+        System.out.println("Unicast receiver current start......");
+        System.out.println("------------------------------------");
         while (!interrupted()) {
             try {
                 DatagramPacket receivePacket = new DatagramPacket(new byte[MAX_RECEIVE], MAX_RECEIVE);

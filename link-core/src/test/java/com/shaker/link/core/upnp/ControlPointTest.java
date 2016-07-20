@@ -8,9 +8,14 @@ import java.io.IOException;
  */
 public class ControlPointTest {
 
-    public static void main(String... args) throws IOException {
+    public static void main(String... args) throws IOException, InterruptedException {
         ControlPoint cp = new ControlPoint();
         cp.init();
         cp.search();
+
+        do {
+            cp.print();
+            Thread.sleep(60 * 1000L);
+        } while (true);
     }
 }
