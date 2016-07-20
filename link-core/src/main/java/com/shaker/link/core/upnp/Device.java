@@ -56,6 +56,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                     UnicastPacket unicastPacket = new UnicastPacket();
                     unicastPacket.action = UPNP.ACTION_SEARCH_RESP;
                     unicastPacket.deviceModel = new DeviceModel();
+                    unicastPacket.deviceModel.interval = UPNP.ALIVE_INTERVAL;
                     unicastPacket.deviceModel.host = InetAddress.getLocalHost().getHostAddress();
                     unicastPacket.deviceModel.socketPort = socketServer.getPort();
                     unicastPacket.deviceModel.uuid = UPNP.uuid;
@@ -111,6 +112,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                     multicastPacket.action = UPNP.ACTION_NOTIFY;
                     multicastPacket.category = UPNP.NOTIFY_ALIVE;
                     multicastPacket.deviceModel = new DeviceModel();
+                    multicastPacket.deviceModel.interval = UPNP.ALIVE_INTERVAL;
                     multicastPacket.deviceModel.host = InetAddress.getLocalHost().getHostAddress();
                     multicastPacket.deviceModel.socketPort = socketServer.getPort();
                     multicastPacket.deviceModel.uuid = UPNP.uuid;

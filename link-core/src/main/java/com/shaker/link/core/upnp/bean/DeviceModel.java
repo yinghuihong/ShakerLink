@@ -5,6 +5,14 @@ package com.shaker.link.core.upnp.bean;
  */
 public class DeviceModel {
 
+    /**
+     * last update time
+     */
+    public long lastUpdateTime;
+    /**
+     * expired interval
+     */
+    public int interval;
     public String host;
     public int socketPort;
     public String uuid;
@@ -14,7 +22,9 @@ public class DeviceModel {
     @Override
     public String toString() {
         return "DeviceModel{" +
-                "host='" + host + '\'' +
+                "lastUpdateTime=" + lastUpdateTime +
+                ", interval=" + interval +
+                ", host='" + host + '\'' +
                 ", socketPort=" + socketPort +
                 ", uuid='" + uuid + '\'' +
                 ", name='" + name + '\'' +

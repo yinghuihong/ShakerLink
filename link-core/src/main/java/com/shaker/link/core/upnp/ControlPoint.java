@@ -14,6 +14,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -32,6 +33,8 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     private SocketClient socketClient;
 
+    private DisposerThread disposerThread;
+
     private Gson gson = new Gson();
 
     private Map<String, DeviceModel> map = new HashMap<>();
@@ -42,12 +45,14 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
         multicastSender = new MulticastSender();
         unicastReceiver = new UnicastReceiver(this);
         multicastReceiver = new MulticastReceiver(this);
+        disposerThread = new DisposerThread(this);
         deviceListChangedListener = listener;
     }
 
     public void init() {
         unicastReceiver.start();
         multicastReceiver.start();
+        disposerThread.start();
     }
 
     public void search() throws IOException {
@@ -72,6 +77,9 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
             unicastReceiver.interrupt();
         }
         socketClient.close();
+        if (!disposerThread.isInterrupted()) {
+            disposerThread.interrupt();
+        }
     }
 
     @Override
@@ -84,6 +92,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
                         + ":" + packet.getPort() + "\n" + new String(receiveBytes) + "\n");
                 switch (multicastPacket.category) {
                     case UPNP.NOTIFY_ALIVE:
+                        multicastPacket.deviceModel.lastUpdateTime = System.currentTimeMillis();
                         map.put(multicastPacket.deviceModel.uuid, multicastPacket.deviceModel);
                         if (deviceListChangedListener != null) {
                             deviceListChangedListener.deviceListChanged(this);
@@ -140,5 +149,38 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     public interface DeviceListChangedListener {
         void deviceListChanged(ControlPoint controlPoint);
+    }
+
+    private class DisposerThread extends Thread {
+
+        private ControlPoint controlPoint;
+
+        public DisposerThread(ControlPoint controlPoint) {
+            this.controlPoint = controlPoint;
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            while (!interrupted()) {
+                Iterator<Map.Entry<String, DeviceModel>> iterator = controlPoint.getDeviceModels().entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<String, DeviceModel> entry = iterator.next();
+                    DeviceModel deviceModel = entry.getValue();
+                    long currentTime = System.currentTimeMillis();
+                    long expiredTime = deviceModel.lastUpdateTime + deviceModel.interval + UPNP.DISPOSER_ALIVE_MARGIN;
+                    System.out.println(currentTime + ", " + expiredTime);
+                    if (currentTime > expiredTime) {
+                        iterator.remove();
+                        controlPoint.deviceListChangedListener.deviceListChanged(controlPoint);
+                    }
+                }
+                try {
+                    sleep(UPNP.DISPOSER_PERIOD);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }
