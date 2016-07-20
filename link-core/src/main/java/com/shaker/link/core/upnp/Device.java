@@ -110,7 +110,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                 try {
                     MulticastPacket multicastPacket = new MulticastPacket();
                     multicastPacket.action = UPNP.ACTION_NOTIFY;
-                    multicastPacket.category = UPNP.NOTIFY_ALIVE;
+                    multicastPacket.category = UPNP.CATEGORY_NOTIFY_ALIVE;
                     multicastPacket.deviceModel = new DeviceModel();
                     multicastPacket.deviceModel.interval = UPNP.ALIVE_INTERVAL;
                     multicastPacket.deviceModel.host = InetAddress.getLocalHost().getHostAddress();

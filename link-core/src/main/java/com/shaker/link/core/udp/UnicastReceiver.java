@@ -52,8 +52,7 @@ public class UnicastReceiver extends Thread {
                 byte[] receiveMsg = Arrays.copyOfRange(receivePacket.getData(),
                         receivePacket.getOffset(),
                         receivePacket.getOffset() + receivePacket.getLength());
-//                System.out.println("Handing at client " + receivePacket.getAddress().getHostName());
-//                System.out.println("Server Receive Data : " + new String(receiveMsg));
+                System.out.println("Receive unicast message :\n" + new String(receiveMsg) + "\n");
                 if (listener != null) {
                     listener.unicastReceive(new String(receiveMsg));
                 }

@@ -7,6 +7,7 @@ import com.shaker.link.core.udp.MulticastSender;
 import com.shaker.link.core.udp.UnicastReceiver;
 import com.shaker.link.core.upnp.bean.DeviceModel;
 import com.shaker.link.core.upnp.bean.MulticastPacket;
+import com.shaker.link.core.upnp.bean.UnicastPacket;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -68,7 +69,19 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     @Override
     public void unicastReceive(String data) {
-        System.out.println("Receive unicast message :\n" + data + "\n");
+        UnicastPacket unicastPacket = gson.fromJson(data, UnicastPacket.class);
+        switch (unicastPacket.action) {
+            case UPNP.ACTION_SEARCH_RESP:
+                unicastPacket.deviceModel.lastUpdateTime = System.currentTimeMillis();
+                map.put(unicastPacket.deviceModel.uuid, unicastPacket.deviceModel);
+                if (deviceListChangedListener != null) {
+                    deviceListChangedListener.deviceListChanged(this);
+                }
+                break;
+            default:
+                // ignore
+                break;
+        }
     }
 
     public void close() {
@@ -91,14 +104,14 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
                 System.out.println("Receive multicast msg from " + packet.getAddress().getHostAddress()
                         + ":" + packet.getPort() + "\n" + new String(receiveBytes) + "\n");
                 switch (multicastPacket.category) {
-                    case UPNP.NOTIFY_ALIVE:
+                    case UPNP.CATEGORY_NOTIFY_ALIVE:
                         multicastPacket.deviceModel.lastUpdateTime = System.currentTimeMillis();
                         map.put(multicastPacket.deviceModel.uuid, multicastPacket.deviceModel);
                         if (deviceListChangedListener != null) {
                             deviceListChangedListener.deviceListChanged(this);
                         }
                         break;
-                    case UPNP.NOTIFY_BYEBYE:
+                    case UPNP.CATEGORY_NOTIFY_BYEBYE:
                         map.remove(multicastPacket.deviceModel.uuid);
                         if (deviceListChangedListener != null) {
                             deviceListChangedListener.deviceListChanged(this);
@@ -172,7 +185,9 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
                     System.out.println(currentTime + ", " + expiredTime);
                     if (currentTime > expiredTime) {
                         iterator.remove();
-                        controlPoint.deviceListChangedListener.deviceListChanged(controlPoint);
+                        if (controlPoint.deviceListChangedListener != null) {
+                            controlPoint.deviceListChangedListener.deviceListChanged(controlPoint);
+                        }
                     }
                 }
                 try {
