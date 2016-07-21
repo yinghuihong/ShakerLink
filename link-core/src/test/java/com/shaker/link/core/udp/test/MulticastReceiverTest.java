@@ -11,7 +11,7 @@ import java.util.Arrays;
  */
 public class MulticastReceiverTest {
 
-    public static void main(String... args) {
+    public static void main(String... args) throws InterruptedException {
         MulticastReceiver receiver = new MulticastReceiver(new MulticastReceiver.MulticastReceiverListener() {
             @Override
             public void multicastReceive(DatagramPacket packet) {
@@ -21,5 +21,7 @@ public class MulticastReceiverTest {
             }
         });
         receiver.start();
+        Thread.sleep(10 * 1000L);
+        receiver.close();
     }
 }

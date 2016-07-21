@@ -12,15 +12,13 @@ public class ControlPointTest {
         ControlPoint cp = new ControlPoint(new ControlPoint.DeviceListChangedListener() {
             @Override
             public void deviceListChanged(ControlPoint controlPoint) {
-                System.out.println(controlPoint.getDeviceModels());
             }
         });
-        cp.init();
+        cp.start();
         cp.search();
 
-        do {
-            cp.print();
-            Thread.sleep(60 * 1000L);
-        } while (true);
+        // verify thread and memory safe release
+//        Thread.sleep(5 * 1000L);
+//        cp.close();
     }
 }

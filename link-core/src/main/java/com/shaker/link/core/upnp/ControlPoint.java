@@ -50,17 +50,13 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
         deviceListChangedListener = listener;
     }
 
-    public void init() {
+    public void start() {
         unicastReceiver.start();
         multicastReceiver.start();
         disposerThread.start();
     }
 
     public void search() throws IOException {
-        // use file input
-//        InputStream inputStream = ClassLoader.getSystemResourceAsStream("json/search.json");
-//        multicastSender.send(StreamConvertUtil.stream2Byte(inputStream));
-        // use object
         MulticastPacket multicastPacket = new MulticastPacket();
         multicastPacket.action = UPNP.ACTION_SEARCH;
         multicastPacket.unicastPort = unicastReceiver.getPort();
@@ -86,12 +82,11 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     public void close() {
         multicastSender.close();
-        if (!unicastReceiver.isInterrupted()) {
-            unicastReceiver.interrupt();
-        }
-        socketClient.close();
-        if (!disposerThread.isInterrupted()) {
-            disposerThread.interrupt();
+        unicastReceiver.close();
+        multicastReceiver.close();
+        disposerThread.close();
+        if (socketClient != null) {
+            socketClient.close();
         }
     }
 
@@ -203,8 +198,15 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
                 try {
                     sleep(UPNP.DISPOSER_PERIOD);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    interrupt();// leak will cause thread be freeze
+                    System.out.println("DisposerThread.java " + e.getMessage());
                 }
+            }
+        }
+
+        public void close() {
+            if (!interrupted()) {
+                interrupt();
             }
         }
     }

@@ -8,13 +8,14 @@ import com.shaker.link.core.udp.UnicastReceiver;
  */
 public class UnicastReceiverTest {
 
-    public static void main(String... args) {
+    public static void main(String... args) throws InterruptedException {
         UnicastReceiver receiver = new UnicastReceiver(new UnicastReceiver.UnicastReceiverListener() {
             @Override
             public void unicastReceive(String data) {
-                System.out.println(data);
             }
         });
         receiver.start();
+        Thread.sleep(10 * 1000L);
+        receiver.close();
     }
 }

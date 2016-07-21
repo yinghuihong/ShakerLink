@@ -6,8 +6,12 @@ package com.shaker.link.core.upnp;
  */
 public class DeviceTest {
 
-    public static void main(String... args) {
+    public static void main(String... args) throws InterruptedException {
         Device device = new Device();
-        device.init();
+        device.start();
+
+        // verify thread and memory safe release
+//        Thread.sleep(5 * 1000L);
+//        device.close();
     }
 }

@@ -12,6 +12,6 @@ public class MulticastSenderTest {
 
     public static void main(String... args) throws IOException {
         MulticastSender sender = new MulticastSender();
-        sender.send("This is multicast message".getBytes());
+        sender.send("This is multicast message");
     }
 }

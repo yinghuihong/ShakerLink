@@ -38,7 +38,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
         notifyAliveThread = new NotifyAliveThread();
     }
 
-    public void init() {
+    public void start() {
         socketServer.start();
         multicastReceiver.start();
         notifyAliveThread.start();
@@ -75,13 +75,9 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
 
     public void close() {
         socketServer.close();
-        if (!multicastReceiver.isInterrupted()) {
-            multicastReceiver.interrupt();
-        }
+        multicastReceiver.close();
         unicastSender.close();
-        if (!notifyAliveThread.isInterrupted()) {
-            notifyAliveThread.interrupt();
-        }
+        notifyAliveThread.close();
     }
 
     @Override
@@ -137,8 +133,15 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                 try {
                     sleep(UPNP.NOTIFY_ALIVE_PERIOD);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    interrupt();// leak will cause thread be freeze
+                    System.out.println("NotifyAliveThread.java " + e.getMessage());
                 }
+            }
+        }
+
+        public void close() {
+            if (!interrupted()) {
+                interrupt();
             }
         }
     }

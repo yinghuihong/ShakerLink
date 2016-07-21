@@ -23,7 +23,7 @@ public class DeviceFrame extends JFrame implements WindowListener {
         setVisible(true);
         addWindowListener(this);
         device = new Device();
-        device.init();
+        device.start();
     }
 
     public static void main(String... args) {
@@ -38,7 +38,7 @@ public class DeviceFrame extends JFrame implements WindowListener {
     @Override
     public void windowClosing(WindowEvent e) {
         device.close();
-        System.exit(0);
+//        System.exit(0);
     }
 
     @Override

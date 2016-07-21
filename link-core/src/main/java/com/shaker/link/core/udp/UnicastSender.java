@@ -39,6 +39,8 @@ public class UnicastSender {
     }
 
     public void close() {
-        client.close();
+        if (client != null && !client.isClosed()) {
+            client.close();
+        }
     }
 }

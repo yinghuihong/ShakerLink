@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.SocketException;
 
 /**
  * 组播IP地址就是D类IP地址，即224.0.0.0至239.255.255.255之间的IP地址
@@ -44,9 +45,20 @@ public class MulticastReceiver extends Thread {
                 if (listener != null) {
                     listener.multicastReceive(receivePacket);
                 }
+            } catch (SocketException se) {
+                System.out.println("MulticastReceiver.java " + se.getMessage());
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void close() {
+        if (!interrupted()) {
+            interrupt();
+        }
+        if (server != null && !server.isClosed()) {
+            server.close();
         }
     }
 

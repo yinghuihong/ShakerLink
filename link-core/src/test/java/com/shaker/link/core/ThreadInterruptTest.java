@@ -10,9 +10,10 @@ import java.io.InputStreamReader;
 public class ThreadInterruptTest {
 
 
-    public static void main(String... args) {
+    public static void main(String... args) throws InterruptedException {
 //        testCustomThread();
-        testCustomThread2();
+//        testCustomThread2();
+        testCustomThread3();
     }
 
     private static void testCustomThread() {
@@ -36,6 +37,17 @@ public class ThreadInterruptTest {
             e.printStackTrace();
         }
         thread.interrupt();
+    }
+
+    private static void testCustomThread3() {
+        CustomThread3 thread3 = new CustomThread3();
+        thread3.start();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        thread3.close();
     }
 
     private static class CustomThread extends Thread {
@@ -64,6 +76,26 @@ public class ThreadInterruptTest {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+    }
+
+    private static class CustomThread3 extends Thread {
+
+        public void run() {
+            while (!interrupted()) {
+                try {
+                    sleep(3000L);
+                } catch (InterruptedException e) {
+                    interrupt();// leak will cause thread be freeze
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void close() {
+            if (!interrupted()) {
+                interrupt();
             }
         }
     }

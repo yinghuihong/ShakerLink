@@ -19,7 +19,7 @@ public class ControlPointFrame extends JFrame implements ListSelectionListener, 
         addList();
         setVisible(true);
         ControlPoint controlPoint = new ControlPoint(this);
-        controlPoint.init();
+        controlPoint.start();
         controlPoint.search();
     }
 
@@ -29,7 +29,7 @@ public class ControlPointFrame extends JFrame implements ListSelectionListener, 
 
     private void addList() {
         list = new JList<>(model);
-        list.setVisibleRowCount(4); // display 4 items
+        list.setVisibleRowCount(100); // display 100 items
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.addListSelectionListener(this);
 
@@ -44,7 +44,7 @@ public class ControlPointFrame extends JFrame implements ListSelectionListener, 
     @Override
     public void valueChanged(ListSelectionEvent e) {
         DeviceModel model = list.getSelectedValue();
-        System.out.println(model);
+        System.out.println("valueChanged " + model);
     }
 
     @Override

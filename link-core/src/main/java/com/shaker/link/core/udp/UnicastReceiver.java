@@ -1,5 +1,6 @@
 package com.shaker.link.core.udp;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -56,9 +57,20 @@ public class UnicastReceiver extends Thread {
                 if (listener != null) {
                     listener.unicastReceive(new String(receiveMsg));
                 }
-            } catch (Exception e) {
+            } catch (SocketException se) {
+                System.out.println("UnicastReceiver.java " + se.getMessage());
+            } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void close() {
+        if (!interrupted()) {
+            interrupt();
+        }
+        if (server != null && !server.isClosed()) {
+            server.close();
         }
     }
 
