@@ -43,17 +43,22 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
     private DeviceListChangedListener deviceListChangedListener;
 
     public ControlPoint(DeviceListChangedListener listener) {
-        multicastSender = new MulticastSender();
-        unicastReceiver = new UnicastReceiver(this);
-        multicastReceiver = new MulticastReceiver(this);
-        disposerThread = new DisposerThread(this);
         deviceListChangedListener = listener;
     }
 
     public void start() {
+        multicastSender = new MulticastSender();
+        unicastReceiver = new UnicastReceiver(this);
+        multicastReceiver = new MulticastReceiver(this);
+        disposerThread = new DisposerThread(this);
         unicastReceiver.start();
         multicastReceiver.start();
         disposerThread.start();
+    }
+
+    public void restart() {
+        close();
+        start();
     }
 
     public void search() throws IOException {
@@ -81,10 +86,18 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
     }
 
     public void close() {
-        multicastSender.close();
-        unicastReceiver.close();
-        multicastReceiver.close();
-        disposerThread.close();
+        if (multicastSender != null) {
+            multicastSender.close();
+        }
+        if (unicastReceiver != null) {
+            unicastReceiver.close();
+        }
+        if (multicastReceiver != null) {
+            multicastReceiver.close();
+        }
+        if (disposerThread != null) {
+            disposerThread.close();
+        }
         if (socketClient != null) {
             socketClient.close();
         }

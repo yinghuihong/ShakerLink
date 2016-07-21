@@ -32,16 +32,21 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
     private Gson gson = new Gson();
 
     public Device() {
+    }
+
+    public void start() {
         socketServer = new SocketServer(this);
         multicastReceiver = new MulticastReceiver(this);
         unicastSender = new UnicastSender();
         notifyAliveThread = new NotifyAliveThread();
-    }
-
-    public void start() {
         socketServer.start();
         multicastReceiver.start();
         notifyAliveThread.start();
+    }
+
+    public void restart() {
+        close();
+        start();
     }
 
     @Override
@@ -90,11 +95,21 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
     }
 
     public void close() {
-        byebye();
-        socketServer.close();
-        multicastReceiver.close();
-        unicastSender.close();
-        notifyAliveThread.close();
+        if (socketServer != null) {// avoid send unnecessary message
+            byebye();
+        }
+        if (socketServer != null) {
+            socketServer.close();
+        }
+        if (multicastReceiver != null) {
+            multicastReceiver.close();
+        }
+        if (unicastSender != null) {
+            unicastSender.close();
+        }
+        if (notifyAliveThread != null) {
+            notifyAliveThread.close();
+        }
     }
 
     @Override
