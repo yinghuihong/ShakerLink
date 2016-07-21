@@ -3,6 +3,7 @@ package com.shaker.link.core.socket;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,23 +49,35 @@ public class SocketServer extends Thread {
         while (!interrupted()) {
             try {
                 System.out.println("accept()");
-                final Socket socket = server.accept();
-                System.out.println(socket.getLocalAddress().toString() + ":" + socket.getLocalPort());
-                SocketClient socketWrapper = new SocketClient(socket, new SocketClient.SocketReceiverListener() {
+                Socket socket = server.accept();
+                System.out.println("Create SocketClient wrapper socket " + socket.getLocalAddress().toString() + ":" + socket.getLocalPort());
+                SocketClient socketClient = new SocketClient(socket, new SocketClient.SocketReceiverListener() {
                     @Override
-                    public void socketReceive(SocketClient socketWrapper, String data) {
-                        if (data == null) {
-                            print();
-                            map.remove(socketWrapper.hashCode());
-                        } else {
-                            if (listener != null) {
-                                listener.socketReceive(socketWrapper, data);
-                            }
+                    public void socketReceive(SocketClient socketClient, String data) {
+                        if (listener != null) {
+                            listener.socketReceive(socketClient, data);
+                        }
+                    }
+
+                    @Override
+                    public void socketPassiveClosed(SocketClient socketClient) {
+                        map.remove(socketClient.hashCode());
+                        if (listener != null) {
+                            listener.socketPassiveClosed(socketClient);
+                        }
+                    }
+
+                    @Override
+                    public void socketReceiveException(IOException e) {
+                        if (listener != null) {
+                            listener.socketReceiveException(e);
                         }
                     }
                 });
-                map.put(socketWrapper.hashCode(), socketWrapper);
-                socketWrapper.start();// start data receive
+                map.put(socketClient.hashCode(), socketClient);
+                socketClient.start();// start data receive
+            } catch (SocketException se) {
+                System.out.println("SocketServer.java " + se.getMessage());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -84,11 +97,20 @@ public class SocketServer extends Thread {
     }
 
     public void close() {
+        if (!interrupted()) {
+            interrupt();
+        }
         try {
             for (Map.Entry<Integer, SocketClient> entry : map.entrySet()) {
                 entry.getValue().close();
             }
-            server.close();
+            if (server != null && !server.isClosed()) {
+                /**
+                 * Any thread currently blocked in an I/O operation upon this socket
+                 * will throw a {@link SocketException}.
+                 */
+                server.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -85,14 +85,26 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
     }
 
     @Override
-    public synchronized void socketReceive(SocketClient socketWrapper, String data) {
+    public synchronized void socketReceive(SocketClient socketClient, String data) {
         //TODO handle actions
-        System.out.println("[Data Receive]" + data + " [Client]" + socketWrapper.hashCode());
+        System.out.println("Socket receive from " + socketClient.hashCode() + "\n" + data);
+
+        // send data
         try {
-            socketWrapper.send("[Resp]" + data);
+            socketClient.send("[Resp]" + data);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void socketPassiveClosed(SocketClient socketClient) {
+        System.out.println("Socket on client side is closed");
+    }
+
+    @Override
+    public void socketReceiveException(IOException e) {
+        e.printStackTrace();
     }
 
     private class NotifyAliveThread extends Thread {
@@ -123,7 +135,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                     e.printStackTrace();
                 }
                 try {
-                    sleep(60 * 1000);
+                    sleep(UPNP.NOTIFY_ALIVE_PERIOD);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

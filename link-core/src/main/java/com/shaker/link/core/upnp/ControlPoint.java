@@ -156,8 +156,18 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
     }
 
     @Override
-    public synchronized void socketReceive(SocketClient socket, String data) {
-        System.out.println("socket receive " + data);
+    public synchronized void socketReceive(SocketClient socketClient, String data) {
+        System.out.println("Socket receive from " + socketClient.hashCode() + "\n" + data);
+    }
+
+    @Override
+    public void socketPassiveClosed(SocketClient socketClient) {
+        System.out.println("Socket on server side is closed");
+    }
+
+    @Override
+    public void socketReceiveException(IOException e) {
+        e.printStackTrace();
     }
 
     public interface DeviceListChangedListener {

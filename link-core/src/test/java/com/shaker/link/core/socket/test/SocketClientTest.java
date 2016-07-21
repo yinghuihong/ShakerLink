@@ -26,7 +26,16 @@ public class SocketClientTest {
                 new SocketClient.SocketReceiverListener() {
                     @Override
                     public void socketReceive(SocketClient socketClient, String data) {
-                        System.out.println("[Data Receive]" + data);
+                    }
+
+                    @Override
+                    public void socketPassiveClosed(SocketClient socket) {
+                        System.out.println("Socket on server side is closed");
+                    }
+
+                    @Override
+                    public void socketReceiveException(IOException e) {
+
                     }
                 });
         client.start();// start data receive listener
@@ -38,6 +47,7 @@ public class SocketClientTest {
     private static void sendMessageByFile() throws IOException {
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("package.json");
         client.send(StreamConvertUtil.stream2String(inputStream));
+//        client.close(); // it should be exit process
     }
 
     private static void sendMessageByTerminal() throws IOException {

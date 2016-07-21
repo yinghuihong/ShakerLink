@@ -18,13 +18,24 @@ public class SocketServerTest {
     public static void main(String... args) throws IOException {
         server = new SocketServer(new SocketClient.SocketReceiverListener() {
             @Override
-            public void socketReceive(SocketClient socket, String data) {
-                System.out.println("[Socket receive]" + data);
+            public void socketReceive(SocketClient socketClient, String data) {
+                System.out.println("Socket receive...\n" + data);
+                server.close();
+            }
+
+            @Override
+            public void socketPassiveClosed(SocketClient socketClient) {
+                System.out.println("Socket on client side is closed");
+            }
+
+            @Override
+            public void socketReceiveException(IOException e) {
+
             }
         });
         server.start();
 
-        sendMessageByTerminal();
+//        sendMessageByTerminal();
     }
 
     private static void sendMessageByTerminal() throws IOException {

@@ -2,6 +2,7 @@ package com.shaker.link.core.socket;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -48,20 +49,26 @@ public class SocketClient extends Thread {
         while (!interrupted()) {
             try {
                 String data = reader.readUTF(); // block code
+//                System.out.println("Socket receive ....\n" + data);
                 if (listener != null) {
                     listener.socketReceive(this, data);
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (EOFException eof) {
                 if (listener != null) {
-                    listener.socketReceive(this, null);
+                    listener.socketPassiveClosed(this);
+                    // remote socket had closed, we will interrupt current thread and close socket
+                    close();
                 }
-                close();
+            } catch (IOException e) {
+                if (listener != null) {
+                    listener.socketReceiveException(e);
+                }
             }
         }
     }
 
     public void send(String data) throws IOException {
+        System.out.println("Socket send ....\n" + data);
         writer.writeUTF(data);
         writer.flush();
     }
@@ -77,6 +84,10 @@ public class SocketClient extends Thread {
             if (socket != null && !socket.isClosed()) {
                 socket.shutdownInput();
                 socket.shutdownOutput();
+                /**
+                 * Any thread currently blocked in an I/O operation upon this socket
+                 * will throw a {@link SocketException}.
+                 */
                 socket.close();
             }
         } catch (IOException e) {
@@ -85,7 +96,12 @@ public class SocketClient extends Thread {
     }
 
     public interface SocketReceiverListener {
-        void socketReceive(SocketClient socket, String data);
+
+        void socketReceive(SocketClient socketClient, String data);
+
+        void socketPassiveClosed(SocketClient socketClient);
+
+        void socketReceiveException(IOException e);
     }
 
 }
