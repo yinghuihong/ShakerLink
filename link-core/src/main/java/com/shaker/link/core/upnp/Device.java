@@ -73,7 +73,24 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
         }
     }
 
+    private void byebye() {
+        MulticastSender multicastSender = new MulticastSender();
+        try {
+            MulticastPacket multicastPacket = new MulticastPacket();
+            multicastPacket.action = UPNP.ACTION_NOTIFY;
+            multicastPacket.category = UPNP.CATEGORY_NOTIFY_BYEBYE;
+            multicastPacket.deviceModel = new DeviceModel();
+            multicastPacket.deviceModel.uuid = UPNP.uuid;
+            multicastSender.send(multicastPacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            multicastSender.close();
+        }
+    }
+
     public void close() {
+        byebye();
         socketServer.close();
         multicastReceiver.close();
         unicastSender.close();
@@ -140,6 +157,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
         }
 
         public void close() {
+            sender.close();
             if (!interrupted()) {
                 interrupt();
             }
