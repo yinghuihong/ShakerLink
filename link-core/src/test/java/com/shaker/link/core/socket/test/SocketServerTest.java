@@ -16,7 +16,12 @@ public class SocketServerTest {
     private static SocketServer server;
 
     public static void main(String... args) throws IOException {
-        server = new SocketServer(new SocketClient.SocketReceiverListener() {
+        server = new SocketServer(new SocketClient.SocketListener() {
+            @Override
+            public void socketCreated(SocketClient socketClient) {
+                System.out.println("Socket client create success : " + socketClient);
+            }
+
             @Override
             public void socketReceive(SocketClient socketClient, String data) {
                 System.out.println("Socket receive...\n" + data);

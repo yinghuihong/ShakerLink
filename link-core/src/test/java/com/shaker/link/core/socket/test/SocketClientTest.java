@@ -23,7 +23,7 @@ public class SocketClientTest {
         InetAddress address = InetAddress.getLocalHost();
         System.out.println(address);
         client = new SocketClient(InetAddress.getLocalHost(), PORT,
-                new SocketClient.SocketReceiverListener() {
+                new SocketClient.SocketListener() {
                     @Override
                     public void socketReceive(SocketClient socketClient, String data) {
                     }
@@ -47,7 +47,7 @@ public class SocketClientTest {
     private static void sendMessageByFile() throws IOException {
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("package.json");
         client.send(StreamConvertUtil.stream2String(inputStream));
-//        client.close(); // it should be exit process
+        client.close(); // it should be exit process
     }
 
     private static void sendMessageByTerminal() throws IOException {

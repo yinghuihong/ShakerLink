@@ -9,17 +9,17 @@ import com.shaker.link.core.udp.UnicastSender;
 import com.shaker.link.core.upnp.bean.DeviceModel;
 import com.shaker.link.core.upnp.bean.MulticastPacket;
 import com.shaker.link.core.upnp.bean.UnicastPacket;
+import com.shaker.link.core.util.NetworkUtil;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.util.Arrays;
 
 /**
  * device role
  * Created by yinghuihong on 16/7/19.
  */
-public class Device implements MulticastReceiver.MulticastReceiverListener, SocketClient.SocketReceiverListener {
+public class Device implements MulticastReceiver.MulticastReceiverListener, SocketClient.SocketListener {
 
     private SocketServer socketServer;
 
@@ -62,7 +62,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                     unicastPacket.action = UPNP.ACTION_SEARCH_RESP;
                     unicastPacket.deviceModel = new DeviceModel();
                     unicastPacket.deviceModel.interval = UPNP.ALIVE_INTERVAL;
-                    unicastPacket.deviceModel.host = InetAddress.getLocalHost().getHostAddress();
+                    unicastPacket.deviceModel.host = NetworkUtil.getSiteLocalAddress();
                     unicastPacket.deviceModel.socketPort = socketServer.getPort();
                     unicastPacket.deviceModel.uuid = UPNP.uuid;
                     unicastPacket.deviceModel.name = "DEVICE_" + UPNP.uuid;
@@ -113,7 +113,14 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
     }
 
     @Override
+    public void socketCreated(SocketClient socketClient) {
+        System.out.println("Socket client create success : " + socketClient);
+        socketServer.print();
+    }
+
+    @Override
     public synchronized void socketReceive(SocketClient socketClient, String data) {
+        socketServer.print();
         //TODO handle actions
         System.out.println("Socket receive from " + socketClient.hashCode() + "\n" + data);
 
@@ -126,12 +133,21 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
     }
 
     @Override
+    public void socketActiveClosed(SocketClient socketClient) {
+        System.out.println("Socket on server side active closed");
+        socketServer.print();
+
+    }
+
+    @Override
     public void socketPassiveClosed(SocketClient socketClient) {
         System.out.println("Socket on client side is closed");
+        socketServer.print();
     }
 
     @Override
     public void socketReceiveException(IOException e) {
+        socketServer.print();
         e.printStackTrace();
     }
 
@@ -153,7 +169,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                     multicastPacket.category = UPNP.CATEGORY_NOTIFY_ALIVE;
                     multicastPacket.deviceModel = new DeviceModel();
                     multicastPacket.deviceModel.interval = UPNP.ALIVE_INTERVAL;
-                    multicastPacket.deviceModel.host = InetAddress.getLocalHost().getHostAddress();
+                    multicastPacket.deviceModel.host = NetworkUtil.getSiteLocalAddress();
                     multicastPacket.deviceModel.socketPort = socketServer.getPort();
                     multicastPacket.deviceModel.uuid = UPNP.uuid;
                     multicastPacket.deviceModel.name = "DEVICE_" + UPNP.uuid;

@@ -1,5 +1,7 @@
 package com.shaker.link.core.socket;
 
+import com.shaker.link.core.util.NetworkUtil;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,9 +21,9 @@ public class SocketServer extends Thread {
 
     private Map<Integer, SocketClient> map = new HashMap<>();
 
-    private SocketClient.SocketReceiverListener listener;
+    private SocketClient.SocketListener listener;
 
-    public SocketServer(SocketClient.SocketReceiverListener listener) {
+    public SocketServer(SocketClient.SocketListener listener) {
         boolean flag;
         do {
             try {
@@ -48,39 +50,62 @@ public class SocketServer extends Thread {
         System.out.println("---------------------------------");
         while (!interrupted()) {
             try {
-                System.out.println("accept()");
+                System.out.println("accept() address " + NetworkUtil.getSiteLocalAddress());
                 Socket socket = server.accept();
-                System.out.println("Create SocketClient wrapper socket " + socket.getLocalAddress().toString() + ":" + socket.getLocalPort());
-                SocketClient socketClient = new SocketClient(socket, new SocketClient.SocketReceiverListener() {
-                    @Override
-                    public void socketReceive(SocketClient socketClient, String data) {
-                        if (listener != null) {
-                            listener.socketReceive(socketClient, data);
-                        }
-                    }
-
-                    @Override
-                    public void socketPassiveClosed(SocketClient socketClient) {
-                        map.remove(socketClient.hashCode());
-                        if (listener != null) {
-                            listener.socketPassiveClosed(socketClient);
-                        }
-                    }
-
-                    @Override
-                    public void socketReceiveException(IOException e) {
-                        if (listener != null) {
-                            listener.socketReceiveException(e);
-                        }
-                    }
-                });
-                map.put(socketClient.hashCode(), socketClient);
-                socketClient.start();// start data receive
-            } catch (SocketException se) {
+                System.out.println("Create SocketClient wrapper socket " + socket.getLocalAddress().getHostAddress() + ":" + socket.getLocalPort());
+                startSocketClient(socket);
+            } catch (SocketException se) {// For socket server close();
                 System.out.println("SocketServer.java " + se.getMessage());
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void startSocketClient(final Socket socket) {
+        try {
+            SocketClient socketClient = new SocketClient(socket, new SocketClient.SocketListener() {
+                @Override
+                public void socketCreated(SocketClient socketClient) {
+                    map.put(socketClient.hashCode(), socketClient);
+                    if (listener != null) {
+                        listener.socketCreated(socketClient);
+                    }
+                }
+
+                @Override
+                public void socketReceive(SocketClient socketClient, String data) {
+                    if (listener != null) {
+                        listener.socketReceive(socketClient, data);
+                    }
+                }
+
+                @Override
+                public void socketActiveClosed(SocketClient socketClient) {
+                    map.remove(socketClient.hashCode());
+                    if (listener != null) {
+                        listener.socketActiveClosed(socketClient);
+                    }
+                }
+
+                @Override
+                public void socketPassiveClosed(SocketClient socketClient) {
+                    map.remove(socketClient.hashCode());
+                    if (listener != null) {
+                        listener.socketPassiveClosed(socketClient);
+                    }
+                }
+
+                @Override
+                public void socketReceiveException(IOException e) {
+                    if (listener != null) {
+                        listener.socketReceiveException(e);
+                    }
+                }
+            });
+            socketClient.start();// start data receive
+        } catch (IOException e) {
+            System.out.println("Socket client create fail : " + e.getMessage());
         }
     }
 

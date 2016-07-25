@@ -10,6 +10,7 @@ import com.shaker.link.core.upnp.bean.MulticastPacket;
 import com.shaker.link.core.upnp.bean.UnicastPacket;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -24,7 +25,7 @@ import java.util.Map;
  */
 public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
         MulticastReceiver.MulticastReceiverListener,
-        SocketClient.SocketReceiverListener {
+        SocketClient.SocketListener {
 
     private MulticastSender multicastSender;
 
@@ -152,6 +153,28 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
             socketClient.start();
         } catch (UnknownHostException e) {
             e.printStackTrace();
+        } catch (ConnectException e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void connect(String host, int port) {
+        if (socketClient != null) {
+            socketClient.close();
+        }
+        try {
+            socketClient = new SocketClient(InetAddress.getByName(host), port, this);
+            socketClient.start();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (ConnectException e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -164,8 +187,18 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
     }
 
     @Override
+    public void socketCreated(SocketClient socketClient) {
+        System.out.println("Socket client create success : " + socketClient);
+    }
+
+    @Override
     public synchronized void socketReceive(SocketClient socketClient, String data) {
         System.out.println("Socket receive from " + socketClient.hashCode() + "\n" + data);
+    }
+
+    @Override
+    public void socketActiveClosed(SocketClient socketClient) {
+        System.out.println("Socket on client side active closed");
     }
 
     @Override
