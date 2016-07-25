@@ -22,16 +22,27 @@ public class SocketClient extends Thread {
 
     private SocketListener listener;
 
-    public SocketClient(InetAddress address, int port, SocketListener listener) throws IOException {
+    private String uuid;
+
+    /**
+     * For control point to construct and use uuid identify unique device
+     *
+     * @param uuid identify unique device
+     */
+    public SocketClient(InetAddress address, int port, String uuid, SocketListener listener) throws IOException {
         this.socket = new Socket(address, port);
         this.reader = new DataInputStream(socket.getInputStream());
         this.writer = new DataOutputStream(socket.getOutputStream());
+        this.uuid = uuid;
         this.listener = listener;
         if (listener != null) {
             listener.socketCreated(this);
         }
     }
 
+    /**
+     * For SocketServer to construct
+     */
     public SocketClient(Socket socket, SocketListener listener) throws IOException {
         this.socket = socket;
         this.reader = new DataInputStream(socket.getInputStream());
@@ -40,6 +51,10 @@ public class SocketClient extends Thread {
         if (listener != null) {
             listener.socketCreated(this);
         }
+    }
+
+    public String getUuid() {
+        return uuid;
     }
 
     @Override
@@ -53,10 +68,10 @@ public class SocketClient extends Thread {
                     listener.socketReceive(this, data);
                 }
             } catch (EOFException eof) { // passive closed
+                // remote socket had closed, we will interrupt current thread and close socket
+                close();
                 if (listener != null) {
                     listener.socketPassiveClosed(this);
-                    // remote socket had closed, we will interrupt current thread and close socket
-                    close();
                 }
             } catch (SocketException se) { // active closed
                 if (listener != null) {

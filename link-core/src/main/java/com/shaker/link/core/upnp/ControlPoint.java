@@ -43,8 +43,11 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     private DeviceListChangedListener deviceListChangedListener;
 
-    public ControlPoint(DeviceListChangedListener listener) {
-        deviceListChangedListener = listener;
+    private SocketClient.SocketListener socketListener;
+
+    public ControlPoint(DeviceListChangedListener deviceListChangedListener, SocketClient.SocketListener socketListener) {
+        this.deviceListChangedListener = deviceListChangedListener;
+        this.socketListener = socketListener;
     }
 
     public void start() {
@@ -147,32 +150,19 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
         return map;
     }
 
-    public void connect(DeviceModel model) {
-        try {
-            socketClient = new SocketClient(InetAddress.getByName(model.host), model.socketPort, this);
-            socketClient.start();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (ConnectException e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void connect(String host, int port) {
+    public void connect(String host, int port, String uuid) {
         if (socketClient != null) {
             socketClient.close();
         }
         try {
-            socketClient = new SocketClient(InetAddress.getByName(host), port, this);
+            System.out.println("ControlPoint.java connecting ... " + host + ":" + port + ", uuid = " + uuid);
+            socketClient = new SocketClient(InetAddress.getByName(host), port, uuid, this);
             socketClient.start();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (ConnectException e) {
             e.printStackTrace();
-            System.out.println(e.getMessage());
+            System.out.println("ControlPoint.java " + e.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -189,26 +179,41 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
     @Override
     public void socketCreated(SocketClient socketClient) {
         System.out.println("Socket client create success : " + socketClient);
+        if (socketListener != null) {
+            socketListener.socketCreated(socketClient);
+        }
     }
 
     @Override
     public synchronized void socketReceive(SocketClient socketClient, String data) {
         System.out.println("Socket receive from " + socketClient.hashCode() + "\n" + data);
+        if (socketListener != null) {
+            socketListener.socketReceive(socketClient, data);
+        }
     }
 
     @Override
     public void socketActiveClosed(SocketClient socketClient) {
         System.out.println("Socket on client side active closed");
+        if (socketListener != null) {
+            socketListener.socketActiveClosed(socketClient);
+        }
     }
 
     @Override
     public void socketPassiveClosed(SocketClient socketClient) {
         System.out.println("Socket on server side is closed");
+        if (socketListener != null) {
+            socketListener.socketPassiveClosed(socketClient);
+        }
     }
 
     @Override
     public void socketReceiveException(IOException e) {
-        e.printStackTrace();
+        System.out.println("Socket receive fail : " + e.getMessage());
+        if (socketListener != null) {
+            socketListener.socketReceiveException(e);
+        }
     }
 
     public interface DeviceListChangedListener {

@@ -6,6 +6,7 @@ package com.shaker.link.sample.mobile;
 public class DeviceEntity {
 
     public boolean isChecked;
+    public String uuid;
     public String name;
     public String host;
     public int port;

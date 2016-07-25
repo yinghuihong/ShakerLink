@@ -10,6 +10,7 @@ import android.widget.Toast;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import com.shaker.link.core.socket.SocketClient;
 import com.shaker.link.core.upnp.ControlPoint;
 import com.shaker.link.core.upnp.bean.DeviceModel;
 
@@ -19,9 +20,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * main activity
  * Created by yinghuihong on 16/7/22.
  */
-public class MainActivity extends AppCompatActivity implements ControlPoint.DeviceListChangedListener {
+public class MainActivity extends AppCompatActivity implements ControlPoint.DeviceListChangedListener, SocketClient.SocketListener {
 
     @Bind(R.id.rv_devices)
     RecyclerView rvDevices;
@@ -30,7 +32,9 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
 
     private DeviceAdapter mAdapter;
 
-    private ControlPoint controlPoint;
+    private ControlPoint mControlPoint;
+
+    private String mConnectDeviceUUID;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,29 +48,25 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
         mAdapter.setOnItemClickListener(new DeviceAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, final int position) {
-                Toast.makeText(MainActivity.this, "Click " + position, Toast.LENGTH_SHORT).show();
-                for (DeviceEntity entity : mEntities) {
-                    entity.isChecked = false;
-                }
-                mEntities.get(position).isChecked = true;
-                // TODO connect socket server
+                Toast.makeText(MainActivity.this, "Connect... " + position, Toast.LENGTH_SHORT).show();
                 new Thread() {
                     @Override
                     public void run() {
                         super.run();
-                        controlPoint.connect(mEntities.get(position).host, mEntities.get(position).port);
+                        DeviceEntity deviceEntity = mEntities.get(position);
+                        mControlPoint.connect(deviceEntity.host, deviceEntity.port, deviceEntity.uuid);
                     }
                 }.start();
             }
         });
         rvDevices.setAdapter(mAdapter);
 
-        controlPoint = new ControlPoint(this);
+        mControlPoint = new ControlPoint(this, this);
         new Thread() {
             @Override
             public void run() {
                 super.run();
-                controlPoint.start();
+                mControlPoint.start();
             }
         }.start();
     }
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
             public void run() {
                 super.run();
                 try {
-                    controlPoint.search();
+                    mControlPoint.search();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -89,20 +89,26 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
 
     @Override
     protected void onDestroy() {
-        controlPoint.close();
+        mControlPoint.close();
         super.onDestroy();
     }
 
     @Override
-    public void deviceListChanged(final ControlPoint controlPoint) {
+    public void deviceListChanged(ControlPoint controlPoint) {
+        updateDeviceList();
+    }
+
+    private synchronized void updateDeviceList() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 mEntities.clear();
-                Map<String, DeviceModel> map = controlPoint.getDeviceModels();
+                Map<String, DeviceModel> map = mControlPoint.getDeviceModels();
                 for (Map.Entry<String, DeviceModel> entry : map.entrySet()) {
                     DeviceModel model = entry.getValue();
                     DeviceEntity entity = new DeviceEntity();
+                    entity.isChecked = model.uuid.equals(mConnectDeviceUUID);
+                    entity.uuid = model.uuid;
                     entity.name = model.name;
                     entity.host = model.host;
                     entity.port = model.socketPort;
@@ -113,4 +119,31 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
         });
     }
 
+    @Override
+    public void socketCreated(SocketClient socketClient) {
+        mConnectDeviceUUID = socketClient.getUuid();
+        updateDeviceList();
+    }
+
+    @Override
+    public void socketReceive(SocketClient socketClient, String data) {
+
+    }
+
+    @Override
+    public void socketActiveClosed(SocketClient socketClient) {
+        mConnectDeviceUUID = null;
+        updateDeviceList();
+    }
+
+    @Override
+    public void socketPassiveClosed(SocketClient socketClient) {
+        mConnectDeviceUUID = null;
+        updateDeviceList();
+    }
+
+    @Override
+    public void socketReceiveException(IOException e) {
+
+    }
 }
