@@ -1,13 +1,8 @@
-group 'com.shaker.link'
-version '1.0-SNAPSHOT'
-
 apply plugin: 'java'
+apply plugin: 'me.tatarka.retrolambda'
 
-sourceCompatibility = 1.5
-
-repositories {
-    mavenCentral()
-}
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 dependencies {
     compile 'com.google.code.gson:gson:2.7'

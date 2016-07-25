@@ -1,4 +1,5 @@
-rootProject.name = 'link'
 include 'link-core'
 include 'link-sample'
+include 'link-sample-stb'
+include 'link-sample-mobile'
 

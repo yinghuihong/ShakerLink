@@ -65,7 +65,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                     unicastPacket.deviceModel.host = InetAddress.getLocalHost().getHostAddress();
                     unicastPacket.deviceModel.socketPort = socketServer.getPort();
                     unicastPacket.deviceModel.uuid = UPNP.uuid;
-                    unicastPacket.deviceModel.name = "JSHDC_" + UPNP.uuid;
+                    unicastPacket.deviceModel.name = "DEVICE_" + UPNP.uuid;
                     unicastPacket.deviceModel.model = "CM101";
                     unicastSender.send(receivePacket.getAddress(), multicastPacket.unicastPort, unicastPacket);
                 } catch (IOException e) {
@@ -156,7 +156,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                     multicastPacket.deviceModel.host = InetAddress.getLocalHost().getHostAddress();
                     multicastPacket.deviceModel.socketPort = socketServer.getPort();
                     multicastPacket.deviceModel.uuid = UPNP.uuid;
-                    multicastPacket.deviceModel.name = "JSHDC_" + UPNP.uuid;
+                    multicastPacket.deviceModel.name = "DEVICE_" + UPNP.uuid;
                     multicastPacket.deviceModel.model = "CM101";
                     sender.send(multicastPacket);
                 } catch (IOException e) {
