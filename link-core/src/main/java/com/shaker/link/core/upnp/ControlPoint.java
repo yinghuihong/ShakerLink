@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -160,9 +161,12 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
             System.out.println("ControlPoint.java connecting ... " + host + ":" + port + ", uuid = " + uuid);
             socketClient = new SocketClient(InetAddress.getByName(host), port, uuid, this);
             socketClient.start();
+        } catch (SocketTimeoutException e) {
+            e.printStackTrace();
+            throw new ShakerLinkException(ErrorCode.SOCKET_TIMEOUT, e.getMessage(), e.getCause());
         } catch (UnknownHostException e) {
             e.printStackTrace();
-            throw new ShakerLinkException(ErrorCode.UNKNOW_HOST_EXCEPTION, e.getMessage(), e.getCause());
+            throw new ShakerLinkException(ErrorCode.UNKNOWN_HOST_EXCEPTION, e.getMessage(), e.getCause());
         } catch (ConnectException e) {
             e.printStackTrace();
             throw new ShakerLinkException(ErrorCode.CONNECT_EXCEPTION, e.getMessage(), e.getCause());
@@ -193,8 +197,16 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
     }
 
     @Override
+    public void socketTimeOut(SocketClient socketClient) {
+        System.out.println("Socket time out : " + socketClient);
+        if (socketListener != null) {
+            socketListener.socketTimeOut(socketClient);
+        }
+    }
+
+    @Override
     public synchronized void socketReceive(SocketClient socketClient, String data) {
-        System.out.println("Socket receive from " + socketClient.hashCode() + "\n" + data);
+        System.out.println("Socket receive from " + socketClient + "\n" + data);
         if (socketListener != null) {
             socketListener.socketReceive(socketClient, data);
         }

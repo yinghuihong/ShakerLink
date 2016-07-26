@@ -82,6 +82,11 @@ public class DeviceFrame extends JFrame implements WindowListener, SocketClient.
     }
 
     @Override
+    public void socketTimeOut(SocketClient socketClient) {
+
+    }
+
+    @Override
     public void socketReceive(SocketClient socketClient, String data) {
         jTextArea.append("RECEIVE: " + data + "\n");
     }

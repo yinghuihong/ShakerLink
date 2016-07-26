@@ -5,7 +5,9 @@ package com.shaker.link.core.exception;
  * Created by yinghuihong on 16/7/26.
  */
 public interface ErrorCode {
-    int UNKNOW_HOST_EXCEPTION = 1;
-    int CONNECT_EXCEPTION = 2;
-    int IO_EXCEPTION = 3;
+
+    int SOCKET_TIMEOUT = 1;
+    int UNKNOWN_HOST_EXCEPTION = 2;
+    int CONNECT_EXCEPTION = 3;
+    int IO_EXCEPTION = 34;
 }

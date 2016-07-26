@@ -64,6 +64,11 @@ public class ControlPointFrame extends JFrame implements ListSelectionListener, 
     }
 
     @Override
+    public void socketTimeOut(SocketClient socketClient) {
+
+    }
+
+    @Override
     public void socketReceive(SocketClient socketClient, String data) {
 
     }

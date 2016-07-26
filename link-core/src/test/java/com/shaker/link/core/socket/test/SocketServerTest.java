@@ -23,14 +23,19 @@ public class SocketServerTest {
             }
 
             @Override
+            public void socketTimeOut(SocketClient socketClient) {
+                System.out.println("Socket time out : " + socketClient);
+            }
+
+            @Override
             public void socketReceive(SocketClient socketClient, String data) {
-                System.out.println("Socket receive...\n" + data);
-                server.close();
+                System.out.println("Socket receive from " + socketClient + "\n" + data);
+//                server.close();
             }
 
             @Override
             public void socketActiveClosed(SocketClient socketClient) {
-
+                System.out.println("Socket on server side active closed");
             }
 
             @Override
@@ -40,7 +45,7 @@ public class SocketServerTest {
 
             @Override
             public void socketReceiveException(IOException e) {
-
+                System.out.println("Socket receive fail : " + e.getMessage());
             }
         });
         server.start();

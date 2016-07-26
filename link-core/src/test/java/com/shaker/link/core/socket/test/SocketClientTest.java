@@ -26,16 +26,22 @@ public class SocketClientTest {
                 new SocketClient.SocketListener() {
                     @Override
                     public void socketCreated(SocketClient socketClient) {
+                        System.out.println("Socket client create success : " + socketClient);
+                    }
 
+                    @Override
+                    public void socketTimeOut(SocketClient socketClient) {
+                        System.out.println("Socket time out : " + socketClient);
                     }
 
                     @Override
                     public void socketReceive(SocketClient socketClient, String data) {
+                        System.out.println("Socket receive from " + socketClient.hashCode() + "\n" + data);
                     }
 
                     @Override
                     public void socketActiveClosed(SocketClient socketClient) {
-
+                        System.out.println("Socket on client side active closed");
                     }
 
                     @Override
@@ -45,7 +51,7 @@ public class SocketClientTest {
 
                     @Override
                     public void socketReceiveException(IOException e) {
-
+                        System.out.println("Socket receive fail : " + e.getMessage());
                     }
                 });
         client.start();// start data receive listener
@@ -57,7 +63,7 @@ public class SocketClientTest {
     private static void sendMessageByFile() throws IOException {
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("package.json");
         client.send(StreamConvertUtil.stream2String(inputStream));
-        client.close(); // it should be exit process
+//        client.close(); // it should be exit process
     }
 
     private static void sendMessageByTerminal() throws IOException {

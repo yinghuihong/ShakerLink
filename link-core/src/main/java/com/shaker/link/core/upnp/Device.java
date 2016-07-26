@@ -126,8 +126,18 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
     }
 
     @Override
+    public void socketTimeOut(SocketClient socketClient) {
+        System.out.println("Socket time out : " + socketClient);
+        socketServer.print();
+
+        if (socketListener != null) {
+            socketListener.socketTimeOut(socketClient);
+        }
+    }
+
+    @Override
     public synchronized void socketReceive(SocketClient socketClient, String data) {
-        System.out.println("Socket receive from " + socketClient.hashCode() + "\n" + data);
+        System.out.println("Socket receive from " + socketClient + "\n" + data);
         socketServer.print();
 
         // send data
@@ -164,6 +174,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
 
     @Override
     public void socketReceiveException(IOException e) {
+        System.out.println("Socket receive fail : " + e.getMessage());
         socketServer.print();
         e.printStackTrace();
 

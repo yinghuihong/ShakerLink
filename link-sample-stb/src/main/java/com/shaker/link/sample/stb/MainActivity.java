@@ -56,6 +56,11 @@ public class MainActivity extends Activity implements SocketClient.SocketListene
     }
 
     @Override
+    public void socketTimeOut(SocketClient socketClient) {
+
+    }
+
+    @Override
     public void socketReceive(SocketClient socketClient, final String data) {
         runOnUiThread(new Runnable() {
             @Override

@@ -74,6 +74,14 @@ public class SocketServer extends Thread {
                 }
 
                 @Override
+                public void socketTimeOut(SocketClient socketClient) {
+                    map.remove(socketClient.hashCode());
+                    if (listener != null) {
+                        listener.socketTimeOut(socketClient);
+                    }
+                }
+
+                @Override
                 public void socketReceive(SocketClient socketClient, String data) {
                     if (listener != null) {
                         listener.socketReceive(socketClient, data);

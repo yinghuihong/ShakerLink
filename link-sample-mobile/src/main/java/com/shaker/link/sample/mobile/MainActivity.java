@@ -166,6 +166,12 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
     }
 
     @Override
+    public void socketTimeOut(SocketClient socketClient) {
+        mConnectDeviceUUID = null;
+        updateDeviceList();
+    }
+
+    @Override
     public void socketReceive(SocketClient socketClient, final String data) {
         runOnUiThread(new Runnable() {
             @Override

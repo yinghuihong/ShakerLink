@@ -5,14 +5,24 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 /**
  * socket client
  * Created by yinghuihong on 16/7/18.
  */
 public class SocketClient extends Thread {
+
+    private static final String SOCKET_ALIVE_PACKAGE = "ALIVE";
+
+    private static final int CONNECT_TIMEOUT = 5 * 1000;
+
+    private static final int READ_TIMEOUT = 5 * 1000;
+
+    private static final int HEART_BEAT_INTERVAL = 2 * 1000;
 
     private Socket socket;
 
@@ -24,13 +34,17 @@ public class SocketClient extends Thread {
 
     private String uuid;
 
+    private HeartBeatThread heartBeatThread;
+
     /**
      * For control point to construct and use uuid identify unique device
      *
      * @param uuid identify unique device
      */
     public SocketClient(InetAddress address, int port, String uuid, SocketListener listener) throws IOException {
-        this.socket = new Socket(address, port);
+        this.socket = new Socket();
+        this.socket.connect(new InetSocketAddress(address, port), CONNECT_TIMEOUT);
+        this.socket.setSoTimeout(READ_TIMEOUT);
         this.reader = new DataInputStream(socket.getInputStream());
         this.writer = new DataOutputStream(socket.getOutputStream());
         this.uuid = uuid;
@@ -45,6 +59,7 @@ public class SocketClient extends Thread {
      */
     public SocketClient(Socket socket, SocketListener listener) throws IOException {
         this.socket = socket;
+        this.socket.setSoTimeout(5 * 1000);
         this.reader = new DataInputStream(socket.getInputStream());
         this.writer = new DataOutputStream(socket.getOutputStream());
         this.listener = listener;
@@ -60,11 +75,20 @@ public class SocketClient extends Thread {
     @Override
     public void run() {
         super.run();
+        this.heartBeatThread = new HeartBeatThread();
+        this.heartBeatThread.start();
         while (!interrupted()) {
             try {
                 String data = reader.readUTF(); // block code
-                if (listener != null) {
+                if (SOCKET_ALIVE_PACKAGE.equals(data)) {
+                    System.out.println("Socket Receive... " + data + " " + System.currentTimeMillis());
+                } else if (listener != null) {
                     listener.socketReceive(this, data);
+                }
+            } catch (SocketTimeoutException ste) {
+                close();
+                if (listener != null) {
+                    listener.socketTimeOut(this);
                 }
             } catch (EOFException eof) { // passive closed
                 // remote socket had closed, we will interrupt current thread and close socket
@@ -77,6 +101,7 @@ public class SocketClient extends Thread {
                     listener.socketActiveClosed(this);
                 }
             } catch (IOException e) {
+                e.printStackTrace();
                 if (listener != null) {
                     listener.socketReceiveException(e);
                 }
@@ -91,6 +116,9 @@ public class SocketClient extends Thread {
     }
 
     public void close() {
+        if (heartBeatThread != null && heartBeatThread.isAlive()) {
+            heartBeatThread.close();
+        }
         if (!isInterrupted()) {
             interrupt();
         }
@@ -122,6 +150,8 @@ public class SocketClient extends Thread {
 
         void socketCreated(SocketClient socketClient);
 
+        void socketTimeOut(SocketClient socketClient);
+
         void socketReceive(SocketClient socketClient, String data);
 
         void socketActiveClosed(SocketClient socketClient);
@@ -131,4 +161,30 @@ public class SocketClient extends Thread {
         void socketReceiveException(IOException e);
     }
 
+    private class HeartBeatThread extends Thread {
+
+        @Override
+        public void run() {
+            super.run();
+            while (!interrupted()) {
+                try {
+                    send(SOCKET_ALIVE_PACKAGE);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    sleep(HEART_BEAT_INTERVAL);
+                } catch (InterruptedException e) {
+                    System.out.println("HeartBeatThread.java " + e.getMessage());
+                    interrupt();
+                }
+            }
+        }
+
+        private void close() {
+            if (!interrupted()) {
+                interrupt();
+            }
+        }
+    }
 }
