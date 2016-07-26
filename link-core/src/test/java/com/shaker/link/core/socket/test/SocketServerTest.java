@@ -29,6 +29,11 @@ public class SocketServerTest {
             }
 
             @Override
+            public void socketActiveClosed(SocketClient socketClient) {
+
+            }
+
+            @Override
             public void socketPassiveClosed(SocketClient socketClient) {
                 System.out.println("Socket on client side is closed");
             }

@@ -41,6 +41,7 @@ public class ThreadInterruptTest {
 
     private static void testCustomThread3() {
         CustomThread3 thread3 = new CustomThread3();
+        System.out.println("0000 " + thread3.isAlive() + ", " + thread3.isInterrupted() + ", " + Thread.currentThread());// 0000 false, false, Thread[main,5,main]
         thread3.start();
         try {
             Thread.sleep(3000);
@@ -48,6 +49,12 @@ public class ThreadInterruptTest {
             e.printStackTrace();
         }
         thread3.close();
+        try {
+            Thread.sleep(1000);
+            System.out.println("5555 " + thread3.isAlive() + ", " + thread3.isInterrupted() + ", " + Thread.currentThread());// 5555 false, false, Thread[main,5,main]
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private static class CustomThread extends Thread {
@@ -85,17 +92,28 @@ public class ThreadInterruptTest {
         public void run() {
             while (!interrupted()) {
                 try {
+                    /** InterruptedException
+                     *          if any thread has interrupted the current thread. The
+                     *          <i>interrupted status</i> of the current thread is
+                     *          cleared when this exception is thrown.
+                     *
+                     * @yinghuihong it means isInterrupted() result false
+                     */
                     sleep(3000L);
                 } catch (InterruptedException e) {
+                    System.out.println("3333 " + isAlive() + ", " + isInterrupted() + ", " + Thread.currentThread());// 3333 true, false, Thread[Thread-0,5,main]
                     interrupt();// leak will cause thread be freeze
                     e.printStackTrace();
+                    System.out.println("4444 " + isAlive() + ", " + isInterrupted() + ", " + Thread.currentThread());// 4444 true, true, Thread[Thread-0,5,main]
                 }
             }
         }
 
         public void close() {
             if (!interrupted()) {
+                System.out.println("1111 " + isAlive() + ", " + isInterrupted() + ", " + Thread.currentThread());// 1111 true, false, Thread[main,5,main]
                 interrupt();
+                System.out.println("2222 " + isAlive() + ", " + isInterrupted() + ", " + Thread.currentThread());// 2222 true, true, Thread[main,5,main]
             }
         }
     }

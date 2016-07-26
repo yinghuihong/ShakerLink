@@ -1,5 +1,7 @@
 package com.shaker.link.core.upnp;
 
+import com.shaker.link.core.socket.SocketClient;
+
 import java.io.IOException;
 
 /**
@@ -12,6 +14,31 @@ public class ControlPointTest {
         ControlPoint cp = new ControlPoint(new ControlPoint.DeviceListChangedListener() {
             @Override
             public void deviceListChanged(ControlPoint controlPoint) {
+            }
+        }, new SocketClient.SocketListener() {
+            @Override
+            public void socketCreated(SocketClient socketClient) {
+
+            }
+
+            @Override
+            public void socketReceive(SocketClient socketClient, String data) {
+
+            }
+
+            @Override
+            public void socketActiveClosed(SocketClient socketClient) {
+
+            }
+
+            @Override
+            public void socketPassiveClosed(SocketClient socketClient) {
+
+            }
+
+            @Override
+            public void socketReceiveException(IOException e) {
+
             }
         });
         cp.start();

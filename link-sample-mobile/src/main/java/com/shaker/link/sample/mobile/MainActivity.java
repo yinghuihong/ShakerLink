@@ -12,6 +12,7 @@ import android.widget.Toast;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import com.shaker.link.core.exception.ShakerLinkException;
 import com.shaker.link.core.socket.SocketClient;
 import com.shaker.link.core.upnp.ControlPoint;
 import com.shaker.link.core.upnp.bean.DeviceModel;
@@ -56,13 +57,22 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
         mAdapter.setOnItemClickListener(new DeviceAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, final int position) {
-                Toast.makeText(MainActivity.this, "Connect... " + position, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Connect... ", Toast.LENGTH_SHORT).show();
                 new Thread() {
                     @Override
                     public void run() {
                         super.run();
                         DeviceEntity deviceEntity = mEntities.get(position);
-                        mControlPoint.connect(deviceEntity.host, deviceEntity.port, deviceEntity.uuid);
+                        try {
+                            mControlPoint.connect(deviceEntity.host, deviceEntity.port, deviceEntity.uuid);
+                        } catch (final ShakerLinkException e) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
                     }
                 }.start();
             }
@@ -102,9 +112,13 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
 
     @OnClick(R.id.btn_send)
     void send() {
-        mControlPoint.send(etText.getText().toString());
-        tvText.append("Me: " + etText.getText().toString() + "\n");
-        etText.getText().clear();
+        try {
+            mControlPoint.send(etText.getText().toString());
+            tvText.append("Me: " + etText.getText().toString() + "\n");
+            etText.getText().clear();
+        } catch (Exception e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -143,6 +157,12 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
     public void socketCreated(SocketClient socketClient) {
         mConnectDeviceUUID = socketClient.getUuid();
         updateDeviceList();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Connect Success", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

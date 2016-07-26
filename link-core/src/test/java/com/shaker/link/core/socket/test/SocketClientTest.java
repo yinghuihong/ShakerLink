@@ -22,10 +22,20 @@ public class SocketClientTest {
     public static void main(String... args) throws IOException {
         InetAddress address = InetAddress.getLocalHost();
         System.out.println(address);
-        client = new SocketClient(InetAddress.getLocalHost(), PORT,
+        client = new SocketClient(InetAddress.getLocalHost(), PORT, "UUID",
                 new SocketClient.SocketListener() {
                     @Override
+                    public void socketCreated(SocketClient socketClient) {
+
+                    }
+
+                    @Override
                     public void socketReceive(SocketClient socketClient, String data) {
+                    }
+
+                    @Override
+                    public void socketActiveClosed(SocketClient socketClient) {
+
                     }
 
                     @Override

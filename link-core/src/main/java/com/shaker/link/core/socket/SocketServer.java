@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * socket server
@@ -19,7 +19,7 @@ public class SocketServer extends Thread {
 
     private int port = 9999;
 
-    private Map<Integer, SocketClient> map = new HashMap<>();
+    private Map<Integer, SocketClient> map = new ConcurrentHashMap<>();
 
     private SocketClient.SocketListener listener;
 

@@ -1,6 +1,8 @@
 package com.shaker.link.core.upnp;
 
 import com.google.gson.Gson;
+import com.shaker.link.core.exception.ErrorCode;
+import com.shaker.link.core.exception.ShakerLinkException;
 import com.shaker.link.core.socket.SocketClient;
 import com.shaker.link.core.udp.MulticastReceiver;
 import com.shaker.link.core.udp.MulticastSender;
@@ -150,7 +152,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
         return map;
     }
 
-    public void connect(String host, int port, String uuid) {
+    public void connect(String host, int port, String uuid) throws ShakerLinkException {
         if (socketClient != null) {
             socketClient.close();
         }
@@ -160,18 +162,22 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
             socketClient.start();
         } catch (UnknownHostException e) {
             e.printStackTrace();
+            throw new ShakerLinkException(ErrorCode.UNKNOW_HOST_EXCEPTION, e.getMessage(), e.getCause());
         } catch (ConnectException e) {
             e.printStackTrace();
-            System.out.println("ControlPoint.java " + e.getMessage());
+            throw new ShakerLinkException(ErrorCode.CONNECT_EXCEPTION, e.getMessage(), e.getCause());
         } catch (IOException e) {
             e.printStackTrace();
+            throw new ShakerLinkException(ErrorCode.IO_EXCEPTION, e.getMessage(), e.getCause());
         }
     }
 
-    public void send(String data) {
+    public void send(String data) throws Exception {
         try {
-            if (socketClient != null && !socketClient.isInterrupted()) {
+            if (socketClient != null && socketClient.isAlive()) {
                 socketClient.send(data);
+            } else {
+                throw new Exception("Socket does not connect");
             }
         } catch (IOException e) {
             e.printStackTrace();
