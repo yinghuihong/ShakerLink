@@ -170,7 +170,9 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     public void send(String data) {
         try {
-            socketClient.send(data);
+            if (socketClient != null && !socketClient.isInterrupted()) {
+                socketClient.send(data);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

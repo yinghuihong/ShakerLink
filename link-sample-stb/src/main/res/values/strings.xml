@@ -2,4 +2,5 @@
 <resources>
 
     <string name="app_name">SHAKER_STB</string>
+    <string name="send">SEND</string>
 </resources>

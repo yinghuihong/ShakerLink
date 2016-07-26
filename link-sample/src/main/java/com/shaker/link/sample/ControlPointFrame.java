@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
+ * GUI control point role
  * Created by yinghuihong on 16/7/20.
  */
 public class ControlPointFrame extends JFrame implements ListSelectionListener, ControlPoint.DeviceListChangedListener,

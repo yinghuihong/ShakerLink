@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -27,6 +29,12 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
 
     @Bind(R.id.rv_devices)
     RecyclerView rvDevices;
+
+    @Bind(R.id.tv_text)
+    TextView tvText;
+
+    @Bind(R.id.et_text)
+    EditText etText;
 
     private List<DeviceEntity> mEntities = new ArrayList<>();
 
@@ -67,6 +75,11 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
             public void run() {
                 super.run();
                 mControlPoint.start();
+                try {
+                    mControlPoint.search();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }.start();
     }
@@ -85,6 +98,13 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
                 }
             }
         }.start();
+    }
+
+    @OnClick(R.id.btn_send)
+    void send() {
+        mControlPoint.send(etText.getText().toString());
+        tvText.append("Me: " + etText.getText().toString() + "\n");
+        etText.getText().clear();
     }
 
     @Override
@@ -126,8 +146,13 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
     }
 
     @Override
-    public void socketReceive(SocketClient socketClient, String data) {
-
+    public void socketReceive(SocketClient socketClient, final String data) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                tvText.append("RECEIVE: " + data + "\n");
+            }
+        });
     }
 
     @Override

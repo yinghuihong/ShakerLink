@@ -31,7 +31,10 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
 
     private Gson gson = new Gson();
 
-    public Device() {
+    private SocketClient.SocketListener socketListener;
+
+    public Device(SocketClient.SocketListener socketListener) {
+        this.socketListener = socketListener;
     }
 
     public void start() {
@@ -116,19 +119,26 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
     public void socketCreated(SocketClient socketClient) {
         System.out.println("Socket client create success : " + socketClient);
         socketServer.print();
+
+        if (socketListener != null) {
+            socketListener.socketCreated(socketClient);
+        }
     }
 
     @Override
     public synchronized void socketReceive(SocketClient socketClient, String data) {
-        socketServer.print();
-        //TODO handle actions
         System.out.println("Socket receive from " + socketClient.hashCode() + "\n" + data);
+        socketServer.print();
 
         // send data
         try {
-            socketClient.send("[Resp]" + data);
+            socketClient.send(data);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        if (socketListener != null) {
+            socketListener.socketReceive(socketClient, data);
         }
     }
 
@@ -137,18 +147,29 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
         System.out.println("Socket on server side active closed");
         socketServer.print();
 
+        if (socketListener != null) {
+            socketListener.socketActiveClosed(socketClient);
+        }
     }
 
     @Override
     public void socketPassiveClosed(SocketClient socketClient) {
         System.out.println("Socket on client side is closed");
         socketServer.print();
+
+        if (socketListener != null) {
+            socketListener.socketPassiveClosed(socketClient);
+        }
     }
 
     @Override
     public void socketReceiveException(IOException e) {
         socketServer.print();
         e.printStackTrace();
+
+        if (socketListener != null) {
+            socketListener.socketReceiveException(e);
+        }
     }
 
     private class NotifyAliveThread extends Thread {

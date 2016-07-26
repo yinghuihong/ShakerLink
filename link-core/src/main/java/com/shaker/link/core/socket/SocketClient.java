@@ -63,7 +63,6 @@ public class SocketClient extends Thread {
         while (!interrupted()) {
             try {
                 String data = reader.readUTF(); // block code
-//                System.out.println("Socket receive ....\n" + data);
                 if (listener != null) {
                     listener.socketReceive(this, data);
                 }
@@ -100,8 +99,6 @@ public class SocketClient extends Thread {
                 reader.close();
             }
             if (socket != null && !socket.isClosed()) {
-//                socket.shutdownInput();
-//                socket.shutdownOutput();
                 /**
                  * Any thread currently blocked in an I/O operation upon this socket
                  * will throw a {@link SocketException}.

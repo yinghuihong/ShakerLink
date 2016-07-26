@@ -2,5 +2,6 @@
 <resources>
 
     <string name="app_name">SHAKER_Mobile</string>
-    <string name="search">search</string>
+    <string name="search">SEARCH</string>
+    <string name="send">SEND</string>
 </resources>
