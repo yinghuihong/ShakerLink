@@ -18,6 +18,11 @@ public class DeviceTest {
             }
 
             @Override
+            public void socketTimeOut(SocketClient socketClient) {
+
+            }
+
+            @Override
             public void socketReceive(SocketClient socketClient, String data) {
 
             }
