@@ -1,10 +1,17 @@
 package com.shaker.link.sample.mobile;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -37,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
     @Bind(R.id.et_text)
     EditText etText;
 
+    private static final String TAG = MainActivity.class.getSimpleName();
+
     private List<DeviceEntity> mEntities = new ArrayList<>();
 
     private DeviceAdapter mAdapter;
@@ -44,6 +53,37 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
     private ControlPoint mControlPoint;
 
     private String mConnectDeviceUUID;
+
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+                if (info != null && info.isAvailable()) {
+                    // restart device when network is changed
+                    Log.e(TAG, "Network is available.");
+                    if (mControlPoint != null) {
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                super.run();
+                                mControlPoint.restart();
+                                try {
+                                    mControlPoint.search();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }.start();
+                    }
+                } else {
+                    Log.e(TAG, "Network is unavailable.");
+                }
+            }
+        }
+    };
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -80,18 +120,10 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
         rvDevices.setAdapter(mAdapter);
 
         mControlPoint = new ControlPoint(this, this);
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                mControlPoint.start();
-                try {
-                    mControlPoint.search();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(broadcastReceiver, filter);
     }
 
     @OnClick(R.id.btn_search)
@@ -123,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements ControlPoint.Devi
 
     @Override
     protected void onDestroy() {
+        unregisterReceiver(broadcastReceiver);
         mControlPoint.close();
         super.onDestroy();
     }
