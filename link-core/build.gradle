@@ -1,11 +1,22 @@
 apply plugin: 'java'
 apply plugin: 'me.tatarka.retrolambda'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
 
 dependencies {
     compile 'com.google.code.gson:gson:2.7'
 
     testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+retrolambda {
+    // Config for java library compile by jdk 8 which include unit test,
+    // and should set environment 'JAVA7_HOME' on your os:
+    // open terminal and input launchtcl setenv JAVA7_HOME /xxx/xxx/java7/Home
+    // http://www.dowdandassociates.com/blog/content/howto-set-an-environment-variable-in-mac-os-x-launchd-plist/
+    oldJdk System.getenv("JAVA7_HOME")
+    javaVersion JavaVersion.VERSION_1_7
 }
