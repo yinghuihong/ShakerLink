@@ -55,29 +55,33 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
     @Override
     public void multicastReceive(DatagramPacket receivePacket) {
         byte[] receiveBytes = Arrays.copyOfRange(receivePacket.getData(), 0, receivePacket.getLength());
-        MulticastPacket multicastPacket = gson.fromJson(new String(receiveBytes), MulticastPacket.class);
-        switch (multicastPacket.action) {
-            case UPNP.ACTION_SEARCH:
-                try {
-                    System.out.println("Receive multicast msg from " + receivePacket.getAddress().getHostAddress()
-                            + ":" + receivePacket.getPort() + "\n" + new String(receiveBytes));
-                    UnicastPacket unicastPacket = new UnicastPacket();
-                    unicastPacket.action = UPNP.ACTION_SEARCH_RESP;
-                    unicastPacket.deviceModel = new DeviceModel();
-                    unicastPacket.deviceModel.interval = UPNP.ALIVE_INTERVAL;
-                    unicastPacket.deviceModel.host = NetworkUtil.getSiteLocalAddress();
-                    unicastPacket.deviceModel.socketPort = socketServer.getPort();
-                    unicastPacket.deviceModel.uuid = UPNP.uuid;
-                    unicastPacket.deviceModel.name = "DEVICE_" + UPNP.uuid;
-                    unicastPacket.deviceModel.model = "CM101";
-                    unicastSender.send(receivePacket.getAddress(), multicastPacket.unicastPort, unicastPacket);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                break;
-            default:
-                // ignore
-                break;
+        try {
+            MulticastPacket multicastPacket = gson.fromJson(new String(receiveBytes), MulticastPacket.class);
+            switch (multicastPacket.action) {
+                case UPNP.ACTION_SEARCH:
+                    try {
+                        System.out.println("Receive multicast msg from " + receivePacket.getAddress().getHostAddress()
+                                + ":" + receivePacket.getPort() + "\n" + new String(receiveBytes));
+                        UnicastPacket unicastPacket = new UnicastPacket();
+                        unicastPacket.action = UPNP.ACTION_SEARCH_RESP;
+                        unicastPacket.deviceModel = new DeviceModel();
+                        unicastPacket.deviceModel.interval = UPNP.ALIVE_INTERVAL;
+                        unicastPacket.deviceModel.host = NetworkUtil.getSiteLocalAddress();
+                        unicastPacket.deviceModel.socketPort = socketServer.getPort();
+                        unicastPacket.deviceModel.uuid = UPNP.uuid;
+                        unicastPacket.deviceModel.name = "DEVICE_" + UPNP.uuid;
+                        unicastPacket.deviceModel.model = "CM101";
+                        unicastSender.send(receivePacket.getAddress(), multicastPacket.unicastPort, unicastPacket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                default:
+                    // ignore
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -139,13 +143,6 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
     public synchronized void socketReceive(SocketClient socketClient, String data) {
         System.out.println("Socket receive from " + socketClient + "\n" + data);
         socketServer.print();
-
-        // send data
-        try {
-            socketClient.send(data);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         if (socketListener != null) {
             socketListener.socketReceive(socketClient, data);

@@ -77,19 +77,24 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     @Override
     public void unicastReceive(String data) {
-        UnicastPacket unicastPacket = gson.fromJson(data, UnicastPacket.class);
-        switch (unicastPacket.action) {
-            case UPNP.ACTION_SEARCH_RESP:
-                unicastPacket.deviceModel.lastUpdateTime = System.currentTimeMillis();
-                map.put(unicastPacket.deviceModel.uuid, unicastPacket.deviceModel);
-                if (deviceListChangedListener != null) {
-                    deviceListChangedListener.deviceListChanged(this);
-                }
-                break;
-            default:
-                // ignore
-                break;
+        try {
+            UnicastPacket unicastPacket = gson.fromJson(data, UnicastPacket.class);
+            switch (unicastPacket.action) {
+                case UPNP.ACTION_SEARCH_RESP:
+                    unicastPacket.deviceModel.lastUpdateTime = System.currentTimeMillis();
+                    map.put(unicastPacket.deviceModel.uuid, unicastPacket.deviceModel);
+                    if (deviceListChangedListener != null) {
+                        deviceListChangedListener.deviceListChanged(this);
+                    }
+                    break;
+                default:
+                    // ignore
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
     public void close() {
@@ -113,33 +118,37 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
     @Override
     public void multicastReceive(DatagramPacket packet) {
         byte[] receiveBytes = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-        MulticastPacket multicastPacket = gson.fromJson(new String(receiveBytes), MulticastPacket.class);
-        switch (multicastPacket.action) {
-            case UPNP.ACTION_NOTIFY:
-                System.out.println("Receive multicast msg from " + packet.getAddress().getHostAddress()
-                        + ":" + packet.getPort() + "\n" + new String(receiveBytes) + "\n");
-                switch (multicastPacket.category) {
-                    case UPNP.CATEGORY_NOTIFY_ALIVE:
-                        multicastPacket.deviceModel.lastUpdateTime = System.currentTimeMillis();
-                        map.put(multicastPacket.deviceModel.uuid, multicastPacket.deviceModel);
-                        if (deviceListChangedListener != null) {
-                            deviceListChangedListener.deviceListChanged(this);
-                        }
-                        break;
-                    case UPNP.CATEGORY_NOTIFY_BYEBYE:
-                        map.remove(multicastPacket.deviceModel.uuid);
-                        if (deviceListChangedListener != null) {
-                            deviceListChangedListener.deviceListChanged(this);
-                        }
-                        break;
-                    default:
-                        // ignore
-                        break;
-                }
-                break;
-            default:
-                // ignore
-                break;
+        try {
+            MulticastPacket multicastPacket = gson.fromJson(new String(receiveBytes), MulticastPacket.class);
+            switch (multicastPacket.action) {
+                case UPNP.ACTION_NOTIFY:
+                    System.out.println("Receive multicast msg from " + packet.getAddress().getHostAddress()
+                            + ":" + packet.getPort() + "\n" + new String(receiveBytes) + "\n");
+                    switch (multicastPacket.category) {
+                        case UPNP.CATEGORY_NOTIFY_ALIVE:
+                            multicastPacket.deviceModel.lastUpdateTime = System.currentTimeMillis();
+                            map.put(multicastPacket.deviceModel.uuid, multicastPacket.deviceModel);
+                            if (deviceListChangedListener != null) {
+                                deviceListChangedListener.deviceListChanged(this);
+                            }
+                            break;
+                        case UPNP.CATEGORY_NOTIFY_BYEBYE:
+                            map.remove(multicastPacket.deviceModel.uuid);
+                            if (deviceListChangedListener != null) {
+                                deviceListChangedListener.deviceListChanged(this);
+                            }
+                            break;
+                        default:
+                            // ignore
+                            break;
+                    }
+                    break;
+                default:
+                    // ignore
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
