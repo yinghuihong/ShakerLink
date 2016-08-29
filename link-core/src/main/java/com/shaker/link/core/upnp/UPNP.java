@@ -15,9 +15,9 @@ public interface UPNP {
     String CATEGORY_NOTIFY_BYEBYE = "byebye";
 
     String uuid = UUID.randomUUID().toString();
-    int NOTIFY_ALIVE_PERIOD = 60 * 1000;
+    int NOTIFY_ALIVE_PERIOD = 20 * 1000;
     int ALIVE_INTERVAL = 60 * 1000;
     int DISPOSER_ALIVE_MARGIN = 3 * 1000;
-    int DISPOSER_PERIOD = 30 * 1000;
+    int DISPOSER_PERIOD = 20 * 1000;
 
 }

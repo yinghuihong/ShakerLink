@@ -37,6 +37,48 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
         this.socketListener = socketListener;
     }
 
+    private String uniqueId;
+
+    private String deviceModel;
+
+    private String deviceName;
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
+    }
+
+    private String getUniqueId() {
+        if (uniqueId != null) {
+            return uniqueId;
+        } else {
+            return UPNP.uuid;
+        }
+    }
+
+    public void setDeviceModel(String deviceModel) {
+        this.deviceModel = deviceModel;
+    }
+
+    private String getDeviceModel() {
+        if (deviceModel != null) {
+            return deviceModel;
+        } else {
+            return "CM101";
+        }
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
+
+    private String getDeviceName() {
+        if (deviceName != null) {
+            return deviceName;
+        } else {
+            return "DEVICE_";
+        }
+    }
+
     public void start() {
         socketServer = new SocketServer(this);
         multicastReceiver = new MulticastReceiver(this);
@@ -68,9 +110,9 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                         unicastPacket.deviceModel.interval = UPNP.ALIVE_INTERVAL;
                         unicastPacket.deviceModel.host = NetworkUtil.getSiteLocalAddress();
                         unicastPacket.deviceModel.socketPort = socketServer.getPort();
-                        unicastPacket.deviceModel.uuid = UPNP.uuid;
-                        unicastPacket.deviceModel.name = "DEVICE_" + UPNP.uuid;
-                        unicastPacket.deviceModel.model = "CM101";
+                        unicastPacket.deviceModel.uuid = getUniqueId();
+                        unicastPacket.deviceModel.name = getDeviceName() + getUniqueId();
+                        unicastPacket.deviceModel.model = getDeviceModel();
                         unicastSender.send(receivePacket.getAddress(), multicastPacket.unicastPort, unicastPacket);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -81,7 +123,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                     break;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Multicast Receive " + new String(receiveBytes) + ", " + e.getMessage());
         }
     }
 
@@ -92,7 +134,7 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
             multicastPacket.action = UPNP.ACTION_NOTIFY;
             multicastPacket.category = UPNP.CATEGORY_NOTIFY_BYEBYE;
             multicastPacket.deviceModel = new DeviceModel();
-            multicastPacket.deviceModel.uuid = UPNP.uuid;
+            multicastPacket.deviceModel.uuid = getUniqueId();
             multicastSender.send(multicastPacket);
         } catch (IOException e) {
             e.printStackTrace();
@@ -200,9 +242,9 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
                     multicastPacket.deviceModel.interval = UPNP.ALIVE_INTERVAL;
                     multicastPacket.deviceModel.host = NetworkUtil.getSiteLocalAddress();
                     multicastPacket.deviceModel.socketPort = socketServer.getPort();
-                    multicastPacket.deviceModel.uuid = UPNP.uuid;
-                    multicastPacket.deviceModel.name = "DEVICE_" + UPNP.uuid;
-                    multicastPacket.deviceModel.model = "CM101";
+                    multicastPacket.deviceModel.uuid = getUniqueId();
+                    multicastPacket.deviceModel.name = getDeviceName() + getUniqueId();
+                    multicastPacket.deviceModel.model = getDeviceModel();
                     sender.send(multicastPacket);
                 } catch (IOException e) {
                     e.printStackTrace();

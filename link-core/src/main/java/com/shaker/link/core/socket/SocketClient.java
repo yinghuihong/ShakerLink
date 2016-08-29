@@ -18,11 +18,11 @@ public class SocketClient extends Thread {
 
     private static final String SOCKET_ALIVE_PACKAGE = "ALIVE";
 
-    private static final int CONNECT_TIMEOUT = 5 * 1000;
+    private static final int CONNECT_TIMEOUT = 10 * 1000;
 
-    private static final int READ_TIMEOUT = 5 * 1000;
+    private static final int READ_TIMEOUT = 15 * 1000;
 
-    private static final int HEART_BEAT_INTERVAL = 2 * 1000;
+    private static final int HEART_BEAT_INTERVAL = 3 * 1000;
 
     private Socket socket;
 
@@ -59,7 +59,7 @@ public class SocketClient extends Thread {
      */
     public SocketClient(Socket socket, SocketListener listener) throws IOException {
         this.socket = socket;
-        this.socket.setSoTimeout(5 * 1000);
+        this.socket.setSoTimeout(READ_TIMEOUT);
         this.reader = new DataInputStream(socket.getInputStream());
         this.writer = new DataOutputStream(socket.getOutputStream());
         this.listener = listener;

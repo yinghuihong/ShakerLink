@@ -16,7 +16,7 @@ public class UnicastReceiver extends Thread {
 
     private DatagramSocket server;
 
-    private int port = 8888;
+    private int port = 7777;
 
     private UnicastReceiverListener listener;
 

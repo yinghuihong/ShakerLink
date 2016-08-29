@@ -92,7 +92,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
                     break;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Unicast Receive " + data + ", " + e.getMessage());
         }
 
     }
@@ -148,7 +148,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
                     break;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Multicast Receive " + new String(receiveBytes) + ", " + e.getMessage());
         }
     }
 
