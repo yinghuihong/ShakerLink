@@ -48,6 +48,8 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     private SocketClient.SocketListener socketListener;
 
+    private String mConnectDeviceUUID;
+
     public ControlPoint(DeviceListChangedListener deviceListChangedListener, SocketClient.SocketListener socketListener) {
         this.deviceListChangedListener = deviceListChangedListener;
         this.socketListener = socketListener;
@@ -199,6 +201,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     @Override
     public void socketCreated(SocketClient socketClient) {
+        mConnectDeviceUUID = socketClient.getUuid();
         System.out.println("Socket client create success : " + socketClient);
         if (socketListener != null) {
             socketListener.socketCreated(socketClient);
@@ -207,6 +210,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     @Override
     public void socketTimeOut(SocketClient socketClient) {
+        mConnectDeviceUUID = null;
         System.out.println("Socket time out : " + socketClient);
         if (socketListener != null) {
             socketListener.socketTimeOut(socketClient);
@@ -223,6 +227,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     @Override
     public void socketActiveClosed(SocketClient socketClient) {
+        mConnectDeviceUUID = null;
         System.out.println("Socket on client side active closed");
         if (socketListener != null) {
             socketListener.socketActiveClosed(socketClient);
@@ -231,6 +236,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
 
     @Override
     public void socketPassiveClosed(SocketClient socketClient) {
+        mConnectDeviceUUID = null;
         System.out.println("Socket on server side is closed");
         if (socketListener != null) {
             socketListener.socketPassiveClosed(socketClient);
@@ -268,7 +274,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
                     long currentTime = System.currentTimeMillis();
                     long expiredTime = deviceModel.lastUpdateTime + deviceModel.interval + UPNP.DISPOSER_ALIVE_MARGIN;
                     System.out.println(currentTime + ", " + expiredTime);
-                    if (currentTime > expiredTime) {
+                    if (currentTime > expiredTime && !deviceModel.uuid.equals(mConnectDeviceUUID)) {
                         iterator.remove();
                         if (controlPoint.deviceListChangedListener != null) {
                             controlPoint.deviceListChangedListener.deviceListChanged(controlPoint);
