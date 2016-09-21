@@ -18,6 +18,7 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -30,24 +31,45 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
         MulticastReceiver.MulticastReceiverListener,
         SocketClient.SocketListener {
 
+    /**
+     * 发送组播消息,用于搜索
+     */
     private MulticastSender multicastSender;
 
+    /**
+     * 监听单播消息,获取设备信息、获取设备端SocketServer的ip:port
+     */
     private UnicastReceiver unicastReceiver;
 
+    /**
+     * 监听多播消息,更新设备状态
+     */
     private MulticastReceiver multicastReceiver;
 
+    /**
+     * 用于传输业务数据
+     */
     private SocketClient socketClient;
 
+    /**
+     * 执行移除超时设备
+     */
     private DisposerThread disposerThread;
 
     private Gson gson = new Gson();
 
-    private Map<String, DeviceModel> map = new HashMap<>();
+    /**
+     * 保存设备列表
+     */
+    private Map<String, DeviceModel> mapDevices = new HashMap<>();
 
     private DeviceListChangedListener deviceListChangedListener;
 
     private SocketClient.SocketListener socketListener;
 
+    /**
+     * 连接中的设备的唯一标识
+     */
     private String mConnectDeviceUUID;
 
     public ControlPoint(DeviceListChangedListener deviceListChangedListener, SocketClient.SocketListener socketListener) {
@@ -84,7 +106,7 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
             switch (unicastPacket.action) {
                 case UPNP.ACTION_SEARCH_RESP:
                     unicastPacket.deviceModel.lastUpdateTime = System.currentTimeMillis();
-                    map.put(unicastPacket.deviceModel.uuid, unicastPacket.deviceModel);
+                    mapDevices.put(unicastPacket.deviceModel.uuid, unicastPacket.deviceModel);
                     if (deviceListChangedListener != null) {
                         deviceListChangedListener.deviceListChanged(this);
                     }
@@ -95,25 +117,6 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
             }
         } catch (Exception e) {
             System.out.println("Unicast Receive " + data + ", " + e.getMessage());
-        }
-
-    }
-
-    public void close() {
-        if (multicastSender != null) {
-            multicastSender.close();
-        }
-        if (unicastReceiver != null) {
-            unicastReceiver.close();
-        }
-        if (multicastReceiver != null) {
-            multicastReceiver.close();
-        }
-        if (disposerThread != null) {
-            disposerThread.close();
-        }
-        if (socketClient != null) {
-            socketClient.close();
         }
     }
 
@@ -129,13 +132,13 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
                     switch (multicastPacket.category) {
                         case UPNP.CATEGORY_NOTIFY_ALIVE:
                             multicastPacket.deviceModel.lastUpdateTime = System.currentTimeMillis();
-                            map.put(multicastPacket.deviceModel.uuid, multicastPacket.deviceModel);
+                            mapDevices.put(multicastPacket.deviceModel.uuid, multicastPacket.deviceModel);
                             if (deviceListChangedListener != null) {
                                 deviceListChangedListener.deviceListChanged(this);
                             }
                             break;
                         case UPNP.CATEGORY_NOTIFY_BYEBYE:
-                            map.remove(multicastPacket.deviceModel.uuid);
+                            mapDevices.remove(multicastPacket.deviceModel.uuid);
                             if (deviceListChangedListener != null) {
                                 deviceListChangedListener.deviceListChanged(this);
                             }
@@ -154,16 +157,48 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
         }
     }
 
+    /**
+     * 释放占用的资源
+     */
+    public void close() {
+        if (multicastSender != null) {
+            multicastSender.close();
+        }
+        if (unicastReceiver != null) {
+            unicastReceiver.close();
+        }
+        if (multicastReceiver != null) {
+            multicastReceiver.close();
+        }
+        if (disposerThread != null) {
+            disposerThread.close();
+        }
+        if (socketClient != null) {
+            socketClient.close();
+        }
+    }
+
+    /**
+     * 打印检测到的设备列表
+     */
     public void print() {
-        for (Map.Entry entry : map.entrySet()) {
+        for (Map.Entry entry : mapDevices.entrySet()) {
             System.out.println("[DEVICE]" + entry.getKey() + ", " + entry.getValue().toString());
         }
     }
 
     public Map<String, DeviceModel> getDeviceModels() {
-        return map;
+        return mapDevices;
     }
 
+    /**
+     * Socket长连接
+     *
+     * @param host 设备端地址
+     * @param port 设备端SocketServer监听端口
+     * @param uuid 设备唯一标识
+     * @throws ShakerLinkException
+     */
     public void connect(String host, int port, String uuid) throws ShakerLinkException {
         if (socketClient != null) {
             socketClient.close();
@@ -187,6 +222,9 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
         }
     }
 
+    /**
+     * 发送数据
+     */
     public void send(String data) throws Exception {
         try {
             if (socketClient != null && socketClient.isAlive()) {
@@ -251,10 +289,16 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
         }
     }
 
+    /**
+     * 监听设备列表变更
+     */
     public interface DeviceListChangedListener {
         void deviceListChanged(ControlPoint controlPoint);
     }
 
+    /**
+     * 定时移除超时设备
+     */
     private class DisposerThread extends Thread {
 
         private ControlPoint controlPoint;
@@ -273,7 +317,11 @@ public class ControlPoint implements UnicastReceiver.UnicastReceiverListener,
                     DeviceModel deviceModel = entry.getValue();
                     long currentTime = System.currentTimeMillis();
                     long expiredTime = deviceModel.lastUpdateTime + deviceModel.interval + UPNP.DISPOSER_ALIVE_MARGIN;
-                    System.out.println(currentTime + ", " + expiredTime);
+                    System.out.println("====================================================================");
+                    System.out.println("Device Model " + deviceModel.toString());
+                    System.out.println("Current Time " + new Date(currentTime).toLocaleString());
+                    System.out.println("Expired Time " + new Date(expiredTime).toLocaleString());
+                    System.out.println("====================================================================");
                     if (currentTime > expiredTime && !deviceModel.uuid.equals(mConnectDeviceUUID)) {
                         iterator.remove();
                         if (controlPoint.deviceListChangedListener != null) {

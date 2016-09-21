@@ -23,8 +23,14 @@ public class SocketClient extends Thread {
 
     private static final int CONNECT_TIMEOUT = 10 * 1000;
 
+    /**
+     * 读超时,read(buffer)阻塞超时将抛SocketTimeoutException
+     */
     private static final int READ_TIMEOUT = 30 * 1000;
 
+    /**
+     * 心跳发送间隔,任何一端(server/client)接收不到对方的心跳或者任何数据,超出READ_TIMEOUT就判定为断线
+     */
     private static final int HEART_BEAT_INTERVAL = 5 * 1000;
 
     private Socket socket;
@@ -82,10 +88,9 @@ public class SocketClient extends Thread {
         this.heartBeatThread.start();
         while (!interrupted()) {
             try {
-//                String data = reader.readUTF(); // block code
                 List<Byte> bytes = new ArrayList<>();
                 bytes.clear();
-                byte[] temp = new byte[10];
+                byte[] temp = new byte[1024];
                 do {
                     int size = reader.read(temp);
                     if (size == -1) {
@@ -100,9 +105,10 @@ public class SocketClient extends Thread {
                     buffer[j] = bytes.get(j);
                 }
                 String data = new String(buffer, 0, buffer.length, "UTF-8");
-                System.out.println("Socket Receive " + new Date().toLocaleString() + " ... " + data);
+
                 if (SOCKET_ALIVE_PACKAGE.equals(data)) {
-                    // ignore
+                    // ignore heart beat
+                    System.out.println("Socket Receive " + new Date().toLocaleString() + " ... " + data);
                 } else if (listener != null) {
                     listener.socketReceive(this, data);
                 }
@@ -184,6 +190,9 @@ public class SocketClient extends Thread {
         void socketReceiveException(IOException e);
     }
 
+    /**
+     * 心跳
+     */
     private class HeartBeatThread extends Thread {
 
         @Override

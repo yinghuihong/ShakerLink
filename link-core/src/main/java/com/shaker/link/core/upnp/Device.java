@@ -23,10 +23,19 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
 
     private SocketServer socketServer;
 
+    /**
+     * 监听组播消息,接收"设备搜索"
+     */
     private MulticastReceiver multicastReceiver;
 
+    /**
+     * 发送"设备信息"
+     */
     private UnicastSender unicastSender;
 
+    /**
+     * 发送组播消息,执行报活通知
+     */
     private NotifyAliveThread notifyAliveThread;
 
     private Gson gson = new Gson();
@@ -37,8 +46,14 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
         this.socketListener = socketListener;
     }
 
+    /**
+     * 设备唯一标识
+     */
     private String uniqueId;
 
+    /**
+     * 设备型号
+     */
     private String deviceModel;
 
     private String deviceName;
@@ -127,6 +142,9 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
         }
     }
 
+    /**
+     * 发送离线组播消息
+     */
     private void byebye() {
         MulticastSender multicastSender = new MulticastSender();
         try {
@@ -143,6 +161,9 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
         }
     }
 
+    /**
+     * 释放占用资源
+     */
     public void close() {
         if (socketServer != null) {// avoid send unnecessary message
             byebye();
@@ -222,6 +243,9 @@ public class Device implements MulticastReceiver.MulticastReceiverListener, Sock
         }
     }
 
+    /**
+     * 执行报活通知
+     */
     private class NotifyAliveThread extends Thread {
 
         private MulticastSender sender;
