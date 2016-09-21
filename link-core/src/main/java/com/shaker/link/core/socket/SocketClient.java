@@ -1,14 +1,17 @@
 package com.shaker.link.core.socket;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * socket client
@@ -20,15 +23,15 @@ public class SocketClient extends Thread {
 
     private static final int CONNECT_TIMEOUT = 10 * 1000;
 
-    private static final int READ_TIMEOUT = 15 * 1000;
+    private static final int READ_TIMEOUT = 30 * 1000;
 
-    private static final int HEART_BEAT_INTERVAL = 3 * 1000;
+    private static final int HEART_BEAT_INTERVAL = 5 * 1000;
 
     private Socket socket;
 
-    private DataInputStream reader = null;
+    private InputStream reader = null;
 
-    private DataOutputStream writer = null;
+    private OutputStream writer = null;
 
     private SocketListener listener;
 
@@ -45,8 +48,8 @@ public class SocketClient extends Thread {
         this.socket = new Socket();
         this.socket.connect(new InetSocketAddress(address, port), CONNECT_TIMEOUT);
         this.socket.setSoTimeout(READ_TIMEOUT);
-        this.reader = new DataInputStream(socket.getInputStream());
-        this.writer = new DataOutputStream(socket.getOutputStream());
+        this.reader = socket.getInputStream();
+        this.writer = socket.getOutputStream();
         this.uuid = uuid;
         this.listener = listener;
         if (listener != null) {
@@ -60,8 +63,8 @@ public class SocketClient extends Thread {
     public SocketClient(Socket socket, SocketListener listener) throws IOException {
         this.socket = socket;
         this.socket.setSoTimeout(READ_TIMEOUT);
-        this.reader = new DataInputStream(socket.getInputStream());
-        this.writer = new DataOutputStream(socket.getOutputStream());
+        this.reader = socket.getInputStream();
+        this.writer = socket.getOutputStream();
         this.listener = listener;
         if (listener != null) {
             listener.socketCreated(this);
@@ -79,9 +82,27 @@ public class SocketClient extends Thread {
         this.heartBeatThread.start();
         while (!interrupted()) {
             try {
-                String data = reader.readUTF(); // block code
+//                String data = reader.readUTF(); // block code
+                List<Byte> bytes = new ArrayList<>();
+                bytes.clear();
+                byte[] temp = new byte[10];
+                do {
+                    int size = reader.read(temp);
+                    if (size == -1) {
+                        throw new EOFException();
+                    }
+                    for (int i = 0; i < size; i++) {
+                        bytes.add(temp[i]);
+                    }
+                } while (reader.available() != 0);
+                byte[] buffer = new byte[bytes.size()];
+                for (int j = 0; j < bytes.size(); j++) {
+                    buffer[j] = bytes.get(j);
+                }
+                String data = new String(buffer, 0, buffer.length, "UTF-8");
+                System.out.println("Socket Receive " + new Date().toLocaleString() + " ... " + data);
                 if (SOCKET_ALIVE_PACKAGE.equals(data)) {
-                    System.out.println("Socket Receive... " + data + " " + System.currentTimeMillis());
+                    // ignore
                 } else if (listener != null) {
                     listener.socketReceive(this, data);
                 }
@@ -105,13 +126,15 @@ public class SocketClient extends Thread {
                 if (listener != null) {
                     listener.socketReceiveException(e);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
 
     public void send(String data) throws IOException {
-        System.out.println("Socket send ....\n" + data);
-        writer.writeUTF(data);
+        System.out.println("Socket send " + new Date().toLocaleString() + " ... " + data);
+        writer.write(data.getBytes());
         writer.flush();
     }
 
